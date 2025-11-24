@@ -1,0 +1,114 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    # ✅ Use the Docker service name (not localhost)
+    url: jdbc:mysql://localhost:3307/coursecenterdb
+    username: courseuser
+    password: coursepass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+
+jwt:
+  secret: ${JWT_SECRET:370fc2ad32927ff329d2807b020a92cbde3d349b44c19304d3c8e8b107365042}
+  expiration: 14400000  # 4 hours => 240 minutes => 14400 seconds
+
+
+logging:
+  level:
+    org.springframework.kafka: INFO
+    org.apache.kafka: WARN
+    org.springframework.security: DEBUG
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+
+
+# custom api that will override the default values in the ApiPathConfig class
+app:
+  paths:
+    # Base paths
+    api-base: /api
+    user-base: /user
+    frontend-base: /page
+    enrollment-base: /enrollment
+
+    # Public endpoints (no auth required)
+    public-paths:
+      - /
+      - /js/**
+      - /css/**
+      - /swagger-ui/**
+      - /v3/api-docs/**
+      - /uploads/**
+      - /swagger-resources/**
+      - /webjars/**
+      - /docs
+      - /error
+
+
+    # Frontend public pages
+    front-end-public-pages:
+      - /courses
+      - /login
+      - /register
+      - /index
+      - /forgot-password
+      - /reset-password
+
+    # Frontend authenticated pages
+    front-end-auth-pages:
+      - /profile
+      - /setting
+      - /dashboard
+
+    # Auth endpoints
+    auth-base: /auth
+
+    auth-endpoints:
+      - /register
+      - /login
+
+    # Role-based paths
+    admin-base: /admin
+    student-base: /student
+    teacher-base: /teacher
+
+
+    # Course-related paths
+    course-base: /course
+
+    public-course-api-paths:
+      - ""
+      - /{id}
+      - /{id}/average-rate
+
+    public-course-front-paths:
+      - ""
+      - /{id}
+
+    admin-front-end-course-paths:
+      - /add
+      - /update/**

@@ -1,0 +1,38 @@
+package com.example.stockexchange.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+import java.util.List;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "users")
+@Entity
+public class User extends BaseEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    private Long id;
+
+    @Column(nullable = false)
+    private String firstName;
+
+    @Column(nullable = false)
+    private String lastName;
+
+    @Column(unique = true, length = 100, nullable = false)
+    private String email;
+
+    @Column(nullable = false)
+    private String password;
+
+    @Version
+    private int version;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))
+    private List<Authority> authorities;
+}
