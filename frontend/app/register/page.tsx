@@ -5,7 +5,6 @@ import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Card, CardHeader, CardContent, CardTitle} from "@/components/ui/card";
 import {useTheme} from "next-themes";
-import { Moon, Sun } from 'lucide-react';
 
 export default function RegisterPage() {
 	const [firstName, setFirstName] = useState("");
@@ -16,7 +15,6 @@ export default function RegisterPage() {
 	const [passwordError, setPasswordError] = useState<string | null>(null);
 	const [loading, setLoading] = useState(false);
 	const [responseMsg, setResponseMsg] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
-	const {theme, setTheme} = useTheme();
 
 	const handleRegister = async () => {
 		if (!firstName || !lastName || !email || !password || !confirmPassword) {
@@ -60,7 +58,9 @@ export default function RegisterPage() {
 
 	return (
 		<div
-			className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-700 dark:from-black dark:via-neutral-900 dark:to-neutral-800 transition-colors duration-300">
+			className="
+      min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300
+    dark:from-black dark:via-neutral-900 dark:to-neutral-800 transition-colors duration-300">
 			<Card
 				className="w-full max-w-md shadow-2xl backdrop-blur-xl bg-white/10 dark:bg-black/20 border border-white/10 dark:border-white/10">
 				<CardHeader>

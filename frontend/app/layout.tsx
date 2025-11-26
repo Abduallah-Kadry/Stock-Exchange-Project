@@ -4,9 +4,9 @@ import { ThemeProvider } from 'next-themes';
 import { ThemeToggle } from '@/components/theme-toggle';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ subsets: ['latin'] });
 
-export default function RootLayout ({children}: { children: ReactNode; }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200">
@@ -16,14 +16,12 @@ export default function RootLayout ({children}: { children: ReactNode; }) {
           enableSystem
           disableTransitionOnChange
         >
+          {children}
           <header className="fixed top-4 right-4 z-50">
             <ThemeToggle />
           </header>
-          <main className="min-h-screen">
-            {children}
-          </main>
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
