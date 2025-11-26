@@ -152,24 +152,6 @@ export default function RegisterPage() {
 						{loading ? "Creating account..." : "Register"}
 					</Button>
 
-					<div className="text-center mt-4">
-						<Button
-							variant="outline"
-							onClick={() => {
-								const newTheme = theme === 'dark' ? 'light' : 'dark';
-								document.documentElement.classList.toggle('dark', newTheme === 'dark');
-								setTheme(newTheme);
-							}}
-							className="w-full"
-						>
-							{theme === 'dark' ? (
-								<Sun className="h-4 w-4 mr-2" />
-							) : (
-								<Moon className="h-4 w-4 mr-2" />
-							)}
-							{theme === 'dark' ? 'Light' : 'Dark'} Mode
-						</Button>
-					</div>
 				</CardContent>
 			</Card>
 		</div>
