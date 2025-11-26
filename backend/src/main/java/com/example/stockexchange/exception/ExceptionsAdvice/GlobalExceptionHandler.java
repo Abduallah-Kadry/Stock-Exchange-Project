@@ -18,8 +18,6 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -33,7 +31,6 @@ public class GlobalExceptionHandler {
         return buildResponsibility(ex, status);
 
     }
-
 
 
     // TODO ... build the cruds to support the versioning on add, update (just to learn how to do it ... when is another story)
@@ -89,13 +86,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiRespond> handleGeneralExceptions(Exception ex) {
         // Default to BAD_REQUEST status for unhandled exceptions
         return buildResponsibility(ex, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<ApiRespond> handleRuntimeException(RuntimeException ex) {
-
-        return buildResponsibility(ex,ex.getMessage(),HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 

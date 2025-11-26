@@ -40,7 +40,7 @@ public class StockController {
     @Operation(summary = "create a stock on the system", description = "create a new stock on the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
-    @PostMapping("/creation")
+    @PostMapping("/create")
     public ResponseEntity<ApiRespond> createStock(StockCreationRequest stockCreationRequest) {
 
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
@@ -51,7 +51,7 @@ public class StockController {
     @Operation(summary = "update a stock price on the system", description = "update a stock price on the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
-    @PutMapping("/{id}")
+    @PutMapping("/update/{id}")
     public ResponseEntity<ApiRespond> updateStockPrice(@PathVariable long id, StockPriceUpdateRequest stockPriceUpdateRequest) {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "Stock Price updated successfully", stockService.updatePrice(id, stockPriceUpdateRequest)));
@@ -60,7 +60,7 @@ public class StockController {
     @Operation(summary = "delete a stock from the system", description = "delete a stock from the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
-    @DeleteMapping("/{id}")
+    @DeleteMapping("delete/{id}")
     public ResponseEntity<ApiRespond> deleteStockExchange(@PathVariable long id) {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "Stock deleted successfully", stockService.deleteStock(id)));

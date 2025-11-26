@@ -36,14 +36,8 @@ public class AuthenticationController {
     @Operation(summary = "Register a Student", description = "register a new Student")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
-    public ResponseEntity<ApiRespond<Void>> register(@Valid @RequestBody RegisterRequest registerRequest) {
-
-
+    public void register(@Valid @RequestBody RegisterRequest registerRequest) throws Exception {
         authenticationService.register(registerRequest);
-
-        return ResponseEntity.ok()
-                .body(new ApiRespond<>(HttpStatus.OK, "registered successfully", null));
-
     }
 
     @Operation(summary = "Login a User", description = "Submit email & password to authenticate a student")

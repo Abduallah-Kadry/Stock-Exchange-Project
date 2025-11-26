@@ -70,7 +70,7 @@ public class SecurityConfig {
                             // Health checks (for load balancers)
                             .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                            // Health checks (for load balancers) In the future ofcourse
+                            // Health checks (for load balancers) In the future of course
                             .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
                             // ===== EVERYTHING ELSE REQUIRES AUTHENTICATION =====
@@ -78,8 +78,7 @@ public class SecurityConfig {
                 }
         );
 
-        http.csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        http.csrf(AbstractHttpConfigurer::disable);
 
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
@@ -106,7 +105,6 @@ public class SecurityConfig {
         return http.build();
     }
 
-
     // non-reactive package is used
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
@@ -120,5 +118,4 @@ public class SecurityConfig {
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
-
 }

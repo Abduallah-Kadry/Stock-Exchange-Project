@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>backend</artifactId>
+    <artifactId>stock-exchange</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>stock-exchange</name>
     <description>stock-exchange</description>
@@ -153,7 +153,7 @@
                 <!-- build the image without having to use docker file (select only the important deps to run the project -->
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.4.2</version>
                 <configuration>
                     <to>
                         <image>${project.artifactId}</image>
