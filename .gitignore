@@ -12,6 +12,10 @@ frontend/.env*.local
 .idea/
 *.iml
 .vscode/
+.idea
+*.iws
+*.ipr
+
 
 # OS
 .DS_Store
