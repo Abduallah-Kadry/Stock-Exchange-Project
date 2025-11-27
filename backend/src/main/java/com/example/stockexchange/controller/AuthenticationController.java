@@ -17,6 +17,9 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("${app.paths.api-base}${app.paths.api-version}${app.paths.auth-base}")
 @Tag(name = "Authentication REST API Endpoints", description = "Operations related to register & login")
@@ -36,8 +39,11 @@ public class AuthenticationController {
     @Operation(summary = "Register a Student", description = "register a new Student")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
-    public void register(@Valid @RequestBody RegisterRequest registerRequest) throws Exception {
+    public ResponseEntity<ApiRespond> register(@Valid @RequestBody RegisterRequest registerRequest) throws Exception {
         authenticationService.register(registerRequest);
+        return ResponseEntity.ok()
+                .body(new ApiRespond(HttpStatus.OK, "Registered successfully",
+                        null));
     }
 
     @Operation(summary = "Login a User", description = "Submit email & password to authenticate a student")
@@ -49,7 +55,7 @@ public class AuthenticationController {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", token.getToken())
                 .httpOnly(true)
-                .secure(false) // change to true if using HTTPS
+                .secure(false) // change to true if using HTTPS in production
                 .path("/")
                 .maxAge(jwtExpirationSeconds / 1000)
                 .sameSite("Lax")
@@ -58,12 +64,17 @@ public class AuthenticationController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, cookie.toString())
                 .body(new ApiRespond(HttpStatus.OK, "login successfully",
-                        token));
+                        null));
+//
+//         return ResponseEntity.ok()
+//                .header(HttpHeaders.SET_COOKIE, cookie.toString())
+//                .body(new ApiRespond(HttpStatus.OK, "login successfully",
+//                        token));
     }
 
     @Operation(summary = "Logout", description = "Logout user")
     @PostMapping("/logout")
-    public ResponseEntity<Void> login(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
 
         ResponseCookie cookie = ResponseCookie.from("jwt", "")
                 .httpOnly(true)

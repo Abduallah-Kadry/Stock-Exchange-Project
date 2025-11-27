@@ -1,37 +1,54 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { login } from "@/app/actions/login";
-import { useFormState } from "react-dom";
+import { useState } from "react";
+import { validateRequiredFields } from "@/lib/validators";
+import { loginAction } from "@/app/login/actions";
+import { toast } from "react-hot-toast";
+import { LoginForm } from "@/components/auth/LoginForm";
 
 export default function LoginPage() {
-  const [state, formAction] = useFormState(login, { error: "" });
+  const [loading, setLoading] = useState(false);
+  const handleLogin = async (formData: { email: string; password: string }) => {
+    try {
+      // Validate required fields
+      const requiredFields = {
+        Email: formData.email,
+        Password: formData.password,
+      };
+
+      const requiredValidation = validateRequiredFields(requiredFields);
+      if (!requiredValidation.isValid) {
+        toast.error(requiredValidation.message);
+        return;
+      }
+
+      setLoading(true);
+      const result = await loginAction({
+        email: formData.email,
+        password: formData.password,
+      });
+
+      console.log(result)
+
+      if (result.type === "success") {
+        toast.success(result.message || "Login successful!");
+      } else {
+        toast.error(result.message || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      toast.error(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <Card className="w-[380px] p-6">
-        <h1 className="text-2xl font-semibold mb-4 text-center">Login</h1>
-
-        <form action={formAction} className="space-y-4">
-          <Input name="email" type="email" placeholder="Email" required />
-          <Input name="password" type="password" placeholder="Password" required />
-
-          {state?.error && (
-            <p className="text-red-500 text-sm">{state.error}</p>
-          )}
-
-          <Button type="submit" className="w-full">Login</Button>
-        </form>
-
-        <p className="mt-4 text-center text-sm">
-          Don't have an account?{" "}
-          <a href="/register" className="text-blue-600 hover:underline">
-            Register
-          </a>
-        </p>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br
+    from-slate-200 via-slate-200 to-slate-400
+    dark:from-black dark:via-neutral-900 dark:to-neutral-500 transition-colors duration-300">
+      <LoginForm onSubmit={handleLogin} loading={loading} />
     </div>
   );
 }
