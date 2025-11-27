@@ -1,5 +1,6 @@
-import { LoginRequest, RegisterRequest } from '@/types/auth';
+import { RegisterRequest } from '@/types/auth';
 import { ResponseMessage } from "@/types/ResponseMessage";
+import { toast } from 'react-hot-toast';
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -47,9 +48,17 @@ export const logoutUser = async (): Promise<{ success: boolean }> => {
     const response = await fetchWithAuth('/auth/logout', {
       method: 'POST',
     });
+    
+    if (response.ok) {
+      toast.success('Successfully logged out');
+    } else {
+      throw new Error('Logout failed');
+    }
+    
     return { success: response.ok };
   } catch (error) {
     console.error('Logout failed:', error);
+    toast.error('Failed to log out. Please try again.');
     return { success: false };
   }
 };

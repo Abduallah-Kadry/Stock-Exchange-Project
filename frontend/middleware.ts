@@ -2,15 +2,17 @@ import {NextResponse} from 'next/server';
 import type {NextRequest} from 'next/server';
 
 // This is a middleware that runs on every request
-export function proxy(request: NextRequest) {
+export function middleware(request: NextRequest) {
 	// Get the auth token from the cookies
 	const token = request.cookies.get('jwt')?.value;
 
-	console.log('Request URL:', request.url);
-	console.log('Request path:', request.nextUrl.pathname);
-	console.log('All cookies:', request.cookies.getAll());
 
-	console.log('JWT token from cookies:', token ? 'exists' : 'missing');
+	// Skip auth check for login/register API routes
+	const isPublicApi = request.nextUrl.pathname.startsWith('/api/auth/');
+	if (isPublicApi) {
+		return NextResponse.next();
+	}
+
 	const isAuthPage = request.nextUrl.pathname.startsWith('/login') ||
 		request.nextUrl.pathname.startsWith('/register');
 
@@ -22,10 +24,12 @@ export function proxy(request: NextRequest) {
 		return NextResponse.redirect(loginUrl);
 	}
 
-	// If there is a token and the user is trying to access auth pages
-	if (token && isAuthPage) {
+	// If there is a token and the user is trying to access login page
+	if (token && request.nextUrl.pathname.startsWith('/login')) {
 		return NextResponse.redirect(new URL('/dashboard', request.url));
 	}
+
+	// Allow access to register page even with a token
 
 
 	// For API routes, we need to forward the cookies
@@ -39,7 +43,6 @@ export function proxy(request: NextRequest) {
 		});
 
 		// Ensure credentials are included for all API requests
-		// response.headers.set('Access-Control-Allow-Credentials', 'true');
 
 		// Handle CORS if needed (uncomment and modify as per your requirements)
 		// response.headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');

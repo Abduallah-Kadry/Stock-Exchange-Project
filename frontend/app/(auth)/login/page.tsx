@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { validateRequiredFields } from "@/lib/validators";
-import { loginAction } from "@/app/login/actions";
+import { loginAction } from "@/app/(auth)/login/actions";
 import { toast } from "react-hot-toast";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -32,6 +32,10 @@ export default function LoginPage() {
 
       if (result.type === "success") {
         toast.success(result.message || "Login successful!");
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 2000);
       } else {
         toast.error(result.message || "Login failed. Please try again.");
       }

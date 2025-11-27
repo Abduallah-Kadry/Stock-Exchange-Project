@@ -19,7 +19,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           {children}
           <header className="fixed top-4 right-4 z-50">
-            <ThemeToggle />
           </header>
           <Toaster
             position="top-center"
