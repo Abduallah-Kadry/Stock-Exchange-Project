@@ -1,6 +1,7 @@
 package com.example.stockexchange.controller;
 
 
+import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.request.StockExchangeCreationRequest;
 import com.example.stockexchange.request.StockExchangeUpdateRequest;
@@ -25,7 +26,7 @@ public class StockExchangeController {
 
     private final StockExchangeService stockExchangeService;
 
-    @Operation(summary = "Get all stocks on pages default page size 5", description = "Retrieve a pages of stocks in the system")
+    @Operation(summary = "Get all stockExchanges on pages default page size 5", description = "Retrieve a pages of stockExchanges in the system")
     @PreAuthorize("ROLE_USER")
     @GetMapping("/")
     public ResponseEntity<ApiRespond> getAllStockExchanges(
@@ -34,6 +35,19 @@ public class StockExchangeController {
 
         Page<StockExchangeDto> stockExchanges = stockExchangeService.getAllStockExchange(page, size);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available StockExchanges", stockExchanges));
+
+    }
+
+    @Operation(summary = "Get all stocks in A particular StockExchange which A on pages default page size 5", description = "Get all stocks in A particular StockExchange which A on pages default page size 5")
+    @PreAuthorize("ROLE_USER")
+    @GetMapping("/{id}/stocks")
+    public ResponseEntity<ApiRespond> getAllStocksInStockExchange(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @PathVariable long id) {
+
+        Page<StockDto> stockPage = stockExchangeService.getAllStocks(id ,page, size);
+        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page Stocks In This StockExchange", stockPage));
 
     }
 

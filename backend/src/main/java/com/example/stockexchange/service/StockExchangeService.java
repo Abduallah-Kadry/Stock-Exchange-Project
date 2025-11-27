@@ -1,5 +1,6 @@
 package com.example.stockexchange.service;
 
+import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.entity.Stock;
 import com.example.stockexchange.entity.StockExchange;
@@ -7,11 +8,13 @@ import com.example.stockexchange.entity.StockListing;
 import com.example.stockexchange.entity.StockListingId;
 import com.example.stockexchange.exception.ResourceNotFoundException;
 import com.example.stockexchange.mapper.StockExchangeMapper;
+import com.example.stockexchange.mapper.StockMapper;
 import com.example.stockexchange.repository.StockExchangeRepository;
 import com.example.stockexchange.repository.StockListingRepository;
 import com.example.stockexchange.repository.StockRepository;
 import com.example.stockexchange.request.StockExchangeCreationRequest;
 import com.example.stockexchange.request.StockExchangeUpdateRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class StockExchangeService {
 
@@ -27,13 +31,7 @@ public class StockExchangeService {
     private final StockRepository stockRepository;
     private final StockListingRepository stockListingRepository;
     private final StockExchangeMapper stockExchangeMapper;
-
-    public StockExchangeService(StockExchangeRepository stockExchangeRepository, StockRepository stockRepository, StockListingRepository stockListingRepository, StockExchangeMapper stockExchangeMapper) {
-        this.stockExchangeRepository = stockExchangeRepository;
-        this.stockRepository = stockRepository;
-        this.stockListingRepository = stockListingRepository;
-        this.stockExchangeMapper = stockExchangeMapper;
-    }
+    private final StockMapper stockMapper;
 
     @Transactional
     public Page<StockExchangeDto> getAllStockExchange(int page, int size) {
@@ -72,6 +70,12 @@ public class StockExchangeService {
         } else {
             throw new ResourceNotFoundException("There is no Such Stock Exchange with id " + stockExchangeId);
         }
+    }
+
+    public Page<StockDto> getAllStocks(long id,int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Stock> stockePage = stockListingRepository.findStocksByStockExchangeId(id,pageable);
+        return stockePage.map(stockMapper::map);
     }
 
     @Transactional

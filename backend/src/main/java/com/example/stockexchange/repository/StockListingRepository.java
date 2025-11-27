@@ -4,6 +4,8 @@ import com.example.stockexchange.entity.Stock;
 import com.example.stockexchange.entity.StockExchange;
 import com.example.stockexchange.entity.StockListing;
 import com.example.stockexchange.entity.StockListingId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +20,7 @@ public interface StockListingRepository extends JpaRepository<StockListing, Stoc
     long countByStockExchangeId(@Param("id") Long stockExchangeId);
 
     @Query("SELECT sl.stock FROM stock_listing sl WHERE sl.stockExchange.StockExchangeId = :id")
-    List<Stock> findStocksByStockExchangeId(@Param("id") Long stockExchangeId);
+    Page<Stock> findStocksByStockExchangeId(@Param("id") Long stockExchangeId, Pageable pageable);
 
     @Query("SELECT sl.stockExchange FROM stock_listing sl WHERE sl.stock.stockId = :id")
     List<StockExchange> findStockExchangesByStockId(@Param("id") Long stockId);
