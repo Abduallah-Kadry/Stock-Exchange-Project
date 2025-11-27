@@ -10,6 +10,7 @@ frontend/.env*.local
 
 # IDE
 .idea/
+.idea/*
 *.iml
 .vscode/
 .idea
