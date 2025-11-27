@@ -33,10 +33,15 @@ public class StockExchangeService {
     private final StockExchangeMapper stockExchangeMapper;
     private final StockMapper stockMapper;
 
-    @Transactional
     public Page<StockExchangeDto> getAllStockExchange(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<StockExchange> stockExchangePage = stockExchangeRepository.findAll(pageable);
+        return stockExchangePage.map(stockExchangeMapper::map);
+    }
+
+    public Page<StockExchangeDto> getAllStockExchangeLiveInMarket(int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<StockExchange> stockExchangePage = stockExchangeRepository.findStockExchangesLiveInMarket(pageable);
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
