@@ -61,8 +61,11 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-100 via-slate-200 to-slate-300 dark:from-black dark:via-neutral-900 dark:to-neutral-800 transition-colors duration-300">
-      <RegisterForm 
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br
+     from-slate-100 via-slate-200 to-slate-300
+     dark:from-black dark:via-neutral-900 dark:to-neutral-800
+      transition-colors duration-300">
+      <RegisterForm
         onSubmit={handleRegister} 
         loading={loading} 
       />

@@ -27,8 +27,7 @@ public class StockController {
 
     @Operation(summary = "Get all stocks on pages default page size 5", description = "Retrieve a pages of stocks in the system")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @GetMapping("/allstocks")
+    @GetMapping("")
     public ResponseEntity<ApiRespond> getAllStocks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
@@ -52,8 +51,8 @@ public class StockController {
 
     @Operation(summary = "create a stock on the system", description = "create a new stock on the system")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @PostMapping("/create")
+    @PreAuthorize("ROLE_ADMIN")
+    @PostMapping("")
     public ResponseEntity<ApiRespond> createStock(StockCreationRequest stockCreationRequest) {
 
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
@@ -63,8 +62,8 @@ public class StockController {
 
     @Operation(summary = "update a stock price on the system", description = "update a stock price on the system")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @PutMapping("/update/{id}")
+    @PreAuthorize("ROLE_ADMIN")
+    @PutMapping("/{id}")
     public ResponseEntity<ApiRespond> updateStockPrice(@PathVariable long id, StockPriceUpdateRequest stockPriceUpdateRequest) {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "Stock Price updated successfully", stockService.updatePrice(id, stockPriceUpdateRequest)));
@@ -72,8 +71,8 @@ public class StockController {
 
     @Operation(summary = "delete a stock from the system", description = "delete a stock from the system")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @DeleteMapping("delete/{id}")
+    @PreAuthorize("ROLE_ADMIN")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ApiRespond> deleteStockExchange(@PathVariable long id) {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "Stock deleted successfully", stockService.deleteStock(id)));

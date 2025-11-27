@@ -1,6 +1,7 @@
 import { RegisterRequest } from '@/types/auth';
 import { ResponseMessage } from "@/types/ResponseMessage";
 import { toast } from 'react-hot-toast';
+import {Stock} from "@/types/Stock";
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -15,8 +16,6 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     credentials: 'include', // This is important for sending/receiving cookies
   });
 
-
-  // Handle 401 Unauthorized
   if (response.status === 401) {
     // You might want to redirect to login or refresh token here
     window.location.href = '/login';
@@ -40,9 +39,6 @@ export const registerUser = async (data: RegisterRequest): Promise<ResponseMessa
   }
 };
 
-// Note: loginUser is now handled directly in the login action
-// to properly handle the HTTP-only cookie
-
 export const logoutUser = async (): Promise<{ success: boolean }> => {
   try {
     const response = await fetchWithAuth('/auth/logout', {
@@ -63,8 +59,27 @@ export const logoutUser = async (): Promise<{ success: boolean }> => {
   }
 };
 
-// Example of a protected API call
-export const fetchProtectedData = async (): Promise<any> => {
-  const response = await fetchWithAuth('/protected-route');
-  return response.json();
+
+// In lib/api.ts
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
+}
+
+
+export const fetchStocks = async (page: number = 0, size: number = 5): Promise<PaginatedResponse<Stock>> => {
+  try {
+    const response = await fetchWithAuth(`/stock?page=${page}&size=${size}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch stocks');
+    }
+    const data = await response.json();
+    return data.data; // Assuming the response has a data property with the paginated result
+  } catch (error) {
+    console.error('Error fetching stocks:', error);
+    throw error;
+  }
 };

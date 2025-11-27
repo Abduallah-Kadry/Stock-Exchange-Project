@@ -10,7 +10,7 @@ const inter = Inter({ subsets: ['latin'] });
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" className={inter.className} suppressHydrationWarning>
-      <body className="min-h-screen bg-white text-gray-900 dark:bg-gray-950 dark:text-gray-100 transition-colors duration-200">
+      <body className="min-h-screen bg-white text-gray-700 dark:bg-gray-500 dark:text-gray-100 transition-colors duration-200">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"

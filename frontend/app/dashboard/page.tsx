@@ -1,4 +1,5 @@
 
+
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {StockTable} from "@/components/stock-table";
 
@@ -6,15 +7,15 @@ export default async function DashboardPage() {
 
 	return (
 		<div className="p-6">
-			<Tabs defaultValue="stocks">  {/* Changed from "users" to "stocks" */}
+			<Tabs defaultValue="stocks">
 				<TabsList>
-					<TabsTrigger value="stocks">Stocks</TabsTrigger> {/* Changed from "users" to "stocks" */}
-					<TabsTrigger value="exchanges">Stock Exchanges</TabsTrigger> {/* Changed from "orders" to "exchanges" */}
+					<TabsTrigger value="stocks">Stocks</TabsTrigger>
+					<TabsTrigger value="exchanges">Stock Exchanges</TabsTrigger>
 				</TabsList>
-				<TabsContent value="stocks" className="mt-4">  {/* Changed from "stock" to "stocks" */}
+				<TabsContent value="stocks" className="mt-4">
 					<StockTable/>
 				</TabsContent>
-				<TabsContent value="exchanges" className="mt-4">  {/* Changed from "orders" to "exchanges" */}
+				<TabsContent value="exchanges" className="mt-4">
 					<p>Stock Exchanges Table Here...</p>
 				</TabsContent>
 			</Tabs>
