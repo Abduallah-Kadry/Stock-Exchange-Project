@@ -1,6 +1,7 @@
 package com.example.stockexchange.controller;
 
 import com.example.stockexchange.dto.StockDto;
+import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.request.StockCreationRequest;
 import com.example.stockexchange.request.StockPriceUpdateRequest;
 import com.example.stockexchange.response.ApiRespond;
@@ -35,6 +36,18 @@ public class StockController {
         Page<StockDto> stocks = stockService.getAllStocks(page, size);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks", stocks));
 
+    }
+
+    @Operation(summary = "Get all stockExchange that own A particular Stock which A on pages default page size 5", description = "Get all stockExchange that own A particular Stock which A on pages default page size 5")
+    @PreAuthorize("ROLE_USER")
+    @GetMapping("/{id}/stockExchanges")
+    public ResponseEntity<ApiRespond> getAllStockExchangesOwnStock(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "5") int size,
+            @PathVariable long id) {
+
+        Page<StockExchangeDto> stockExchangeDto = stockService.getAllStockExchangesOwnParticularStock(id ,page, size);
+        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page Stocks In This StockExchange", stockExchangeDto));
     }
 
     @Operation(summary = "create a stock on the system", description = "create a new stock on the system")

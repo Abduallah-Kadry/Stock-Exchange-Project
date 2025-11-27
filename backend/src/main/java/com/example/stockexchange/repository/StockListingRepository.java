@@ -23,5 +23,5 @@ public interface StockListingRepository extends JpaRepository<StockListing, Stoc
     Page<Stock> findStocksByStockExchangeId(@Param("id") Long stockExchangeId, Pageable pageable);
 
     @Query("SELECT sl.stockExchange FROM stock_listing sl WHERE sl.stock.stockId = :id")
-    List<StockExchange> findStockExchangesByStockId(@Param("id") Long stockId);
+    Page<StockExchange> findStockExchangesByStockId(@Param("id") Long stockId, Pageable pageable);
 }

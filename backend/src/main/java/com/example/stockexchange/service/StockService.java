@@ -1,12 +1,18 @@
 package com.example.stockexchange.service;
 
 import com.example.stockexchange.dto.StockDto;
+import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.entity.Stock;
+import com.example.stockexchange.entity.StockExchange;
+import com.example.stockexchange.entity.StockListing;
 import com.example.stockexchange.exception.ResourceNotFoundException;
+import com.example.stockexchange.mapper.StockExchangeMapper;
 import com.example.stockexchange.mapper.StockMapper;
+import com.example.stockexchange.repository.StockListingRepository;
 import com.example.stockexchange.repository.StockRepository;
 import com.example.stockexchange.request.StockCreationRequest;
 import com.example.stockexchange.request.StockPriceUpdateRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,17 +23,15 @@ import java.util.Optional;
 
 
 @Service
+@RequiredArgsConstructor
 public class StockService {
 
     private final StockRepository stockRepository;
+    private final StockListingRepository stockListingRepository;
     private final StockMapper stockMapper;
+    private final StockExchangeMapper stockExchangeMapper;
 
-    public StockService(StockRepository stockRepository, StockMapper stockMapper) {
-        this.stockRepository = stockRepository;
-        this.stockMapper = stockMapper;
-    }
 
-    @Transactional
     public Page<StockDto> getAllStocks(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Stock> stockPage = stockRepository.findAll(pageable);
@@ -35,6 +39,14 @@ public class StockService {
         return stockPage.map(stockMapper::map);
     }
 
+    public Page<StockExchangeDto> getAllStockExchangesOwnParticularStock(long stockId,int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<StockExchange> stockExchangePage = stockListingRepository.findStockExchangesByStockId(stockId,pageable);
+
+        return stockExchangePage.map(stockExchangeMapper::map);
+    }
+
+    @Transactional
     public Stock createStock(StockCreationRequest stockCreationRequest) {
         Stock stock = stockMapper.map(stockCreationRequest);
         return stockRepository.save(stock);
