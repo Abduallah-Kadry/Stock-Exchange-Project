@@ -4,7 +4,6 @@ import {useState} from "react";
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
 import {Card, CardHeader, CardContent, CardTitle} from "@/components/ui/card";
-import {useTheme} from "next-themes";
 
 export default function RegisterPage() {
 	const [firstName, setFirstName] = useState("");
