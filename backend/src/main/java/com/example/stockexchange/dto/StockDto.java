@@ -8,8 +8,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class StockDto {
-
-    private long stockId;
+    private Long stockId;
 
     private String name;
 

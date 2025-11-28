@@ -20,9 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.util.Optional;
+import java.util.List;
 
 
 @Service
@@ -33,6 +31,7 @@ public class StockService {
     private final StockListingRepository stockListingRepository;
     private final StockMapper stockMapper;
     private final StockExchangeMapper stockExchangeMapper;
+    private final StockExchangeService stockExchangeService;
 
 
     public Page<StockDto> getAllStocks(int page, int size) {
@@ -41,9 +40,9 @@ public class StockService {
         return stockPage.map(stockMapper::map);
     }
 
-    public Page<StockExchangeDto> getAllStockExchangesOwnParticularStock(long stockId, int page, int size) {
+    public Page<StockExchangeDto> getAllStockExchangesOwnParticularStock(long stockId,int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<StockExchange> stockExchangePage = stockListingRepository.findStockExchangesByStockId(stockId, pageable);
+        Page<StockExchange> stockExchangePage = stockListingRepository.findStockExchangesByStockId(stockId,pageable);
 
         return stockExchangePage.map(stockExchangeMapper::map);
     }
@@ -51,14 +50,13 @@ public class StockService {
     @Transactional
     public CreateStockResponse createStock(StockCreationRequest stockCreationRequest) {
         Stock stock = stockMapper.map(stockCreationRequest);
-        stock.setUpdatedAt(LocalDateTime.now(ZoneOffset.UTC));
         stockRepository.save(stock);
         return stockMapper.toCreatStockResponse(stock);
     }
 
     @Transactional
     public StockDto updatePrice(long stockId, StockPriceUpdateRequest stockPriceUpdateRequest) {
-        if (stockRepository.findById(stockId).isPresent()) {
+        if(stockRepository.findById(stockId).isPresent()) {
             Stock stock = stockMapper.map(stockPriceUpdateRequest);
             stockRepository.save(stock);
             return stockMapper.map(stock);
@@ -67,15 +65,19 @@ public class StockService {
         }
     }
 
-    public StockDto deleteStock(long stockId) {
+    @Transactional
+    public void deleteStock(Long stockId) {
+        Stock stock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock not found with id: " + stockId));
 
-        Optional<Stock> stock = stockRepository.findById(stockId);
+        List<StockExchange> affectedExchanges = stock.getStockListings().stream()
+                .map(StockListing::getStockExchange)
+                .distinct()
+                .toList();
 
-        if (stock.isPresent()) {
-            stockRepository.deleteById(stockId);
-            return stockMapper.map(stock.get());
-        }
-        throw new ResourceNotFoundException("Stock Not Found!");
+        stockRepository.delete(stock);
+
+        affectedExchanges.forEach(stockExchangeService::updateLiveMarketStatus);
     }
 
     public StockDto getStockById(Long stockId) {

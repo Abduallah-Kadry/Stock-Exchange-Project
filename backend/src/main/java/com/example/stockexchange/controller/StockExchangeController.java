@@ -46,17 +46,35 @@ public class StockExchangeController {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Stock Exchange retrieved successfully", stockExchange));
     }
 
+
+    @Operation(summary = "Get all live Stock Exchanges", description = "Retrieves all Stock Exchanges that are currently live in the market")
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/live")
+    public ResponseEntity<ApiRespond> getAllStockExchangesLiveInMarket(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+
+        Page<StockExchangeDto> liveExchanges = stockExchangeService.getAllStockExchangesLiveInMarket(page, size);
+
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Live Stock Exchanges retrieved successfully",
+                liveExchanges
+        ));
+    }
+
+
     @Operation(summary = "Get all stocks in A particular StockExchange which A on pages default page size 5", description = "Get all stocks in A particular StockExchange which A on pages default page size 5")
     @PreAuthorize("ROLE_USER")
-    @GetMapping("/{id}/stocks")
-    public ResponseEntity<ApiRespond> getAllStocksInStockExchange(
+    @GetMapping("/stock-exchanges/{id}/stocks")
+    public ResponseEntity<ApiRespond> getAllStocksByExchange(
+            @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size,
-            @PathVariable long id) {
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "stockName") String sortBy) {
 
-        Page<StockDto> stockPage = stockExchangeService.getAllStocks(id, page, size);
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page Stocks In This StockExchange", stockPage));
-
+        Page<StockDto> stocks = stockExchangeService.getAllStocksByExchange(id, page, size, sortBy);
+        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks In StockExchange", stocks));
     }
 
     @Operation(summary = "create a new StockExchange on the system", description = "create a new StockExchange on the system")
@@ -83,9 +101,9 @@ public class StockExchangeController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiRespond> deleteStockExchange(@PathVariable long id) {
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "Stock deleted successfully", stockExchangeService.deleteStockExchange(id)));
+    public ResponseEntity<Void> deleteStockExchange(@PathVariable Long id) {
+        stockExchangeService.deleteStockExchange(id);
+        return ResponseEntity.noContent().build();
     }
 
     @Operation(summary = "Add a stock to stockExchange on the system", description = "Add a stock to stockExchange on the system")
@@ -100,9 +118,12 @@ public class StockExchangeController {
     @Operation(summary = "Delete a stock From stockExchange on the system", description = "Add a stock to stockExchange From the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
-    @PutMapping("/removeStock")
-    public ResponseEntity<ApiRespond> removeStockFromStockExchange(@RequestParam long stockExchangeId, @RequestParam long stockId) {
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "Stock Added successfully to StockExchange", stockExchangeService.removeStockFromStockExchange(stockExchangeId, stockId)));
+    @DeleteMapping("/{stockExchangeId}/stocks/{stockId}")
+    public ResponseEntity<Void> removeStockFromStockExchange(
+            @PathVariable Long stockExchangeId,
+            @PathVariable Long stockId) {
+
+        stockExchangeService.removeStockFromStockExchange(stockExchangeId, stockId);
+        return ResponseEntity.noContent().build(); // 204 No Content
     }
 }

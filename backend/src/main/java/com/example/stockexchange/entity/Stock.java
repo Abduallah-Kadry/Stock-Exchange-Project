@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.LastModifiedDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,6 +32,11 @@ public class Stock {
     @LastModifiedDate
     @Column(insertable = false)
     private LocalDateTime updatedAt;
+
+    @OneToMany(mappedBy = "stock",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<StockListing> stockListings = new ArrayList<>();
 
     @Version
     private int version;

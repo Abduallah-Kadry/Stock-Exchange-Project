@@ -6,7 +6,6 @@ import com.example.stockexchange.request.StockCreationRequest;
 import com.example.stockexchange.request.StockPriceUpdateRequest;
 import com.example.stockexchange.response.CreateStockResponse;
 import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
 
 import java.util.List;
 

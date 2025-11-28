@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
@@ -15,7 +18,7 @@ public class StockExchange {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stock_id")
-    private long StockExchangeId;
+    private long stockExchangeId;
 
     @Column(name = "name")
     private String name;
@@ -25,6 +28,11 @@ public class StockExchange {
 
     @Column(name = "live_in_market")
     private volatile boolean liveInMarket;
+
+    @OneToMany(mappedBy = "stockExchange",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true)
+    private List<StockListing> stockListings = new ArrayList<>();
 
     @Version
     private int version;

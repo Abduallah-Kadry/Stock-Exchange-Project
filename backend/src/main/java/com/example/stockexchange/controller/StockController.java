@@ -55,8 +55,8 @@ public class StockController {
             @RequestParam(defaultValue = "5") int size,
             @PathVariable long id) {
 
-        Page<StockExchangeDto> stockExchangeDto = stockService.getAllStockExchangesOwnParticularStock(id, page, size);
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page Stocks In This StockExchange", stockExchangeDto));
+        Page<StockExchangeDto> stockExchangeDto = stockService.getAllStockExchangesOwnParticularStock(id ,page, size);
+        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page StockExchange that Own This Stock", stockExchangeDto));
     }
 
 
@@ -83,8 +83,8 @@ public class StockController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_ADMIN")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiRespond> deleteStockExchange(@PathVariable long id) {
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "Stock deleted successfully", stockService.deleteStock(id)));
+    public ResponseEntity<Void> deleteStockExchange(@PathVariable long id) {
+        stockService.deleteStock(id);
+        return ResponseEntity.noContent().build();
     }
 }

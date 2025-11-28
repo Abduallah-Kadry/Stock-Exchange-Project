@@ -2,10 +2,12 @@ package com.example.stockexchange.service;
 
 import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
+import com.example.stockexchange.dto.StockListingDto;
 import com.example.stockexchange.entity.Stock;
 import com.example.stockexchange.entity.StockExchange;
 import com.example.stockexchange.entity.StockListing;
 import com.example.stockexchange.entity.StockListingId;
+import com.example.stockexchange.exception.DuplicateResourceException;
 import com.example.stockexchange.exception.ResourceNotFoundException;
 import com.example.stockexchange.mapper.StockExchangeMapper;
 import com.example.stockexchange.mapper.StockMapper;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,9 +42,9 @@ public class StockExchangeService {
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
-    public Page<StockExchangeDto> getAllStockExchangeLiveInMarket(int page, int size) {
+    public Page<StockExchangeDto> getAllStockExchangesLiveInMarket(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<StockExchange> stockExchangePage = stockExchangeRepository.findStockExchangesLiveInMarket(pageable);
+        Page<StockExchange> stockExchangePage = stockExchangeRepository.findByLiveInMarketTrue(pageable);
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
@@ -51,11 +54,11 @@ public class StockExchangeService {
 
     public StockExchangeDto createStockExchange(StockExchangeCreationRequest stockExchangeCreationRequest) {
         StockExchange stockExchange = stockExchangeMapper.map(stockExchangeCreationRequest);
-         stockExchangeRepository.save(stockExchange);
-         return stockExchangeMapper.map(stockExchange);
+        stockExchangeRepository.save(stockExchange);
+        return stockExchangeMapper.map(stockExchange);
     }
 
-    public StockExchangeDto updateStockExchange(long stockExchangeId , StockExchangeUpdateRequest stockExchangeUpdateRequest) {
+    public StockExchangeDto updateStockExchange(long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
 
         if (stockExchangeRepository.findById(stockExchangeId).isPresent()){
             stockExchangeRepository.save(stockExchangeMapper.map(stockExchangeUpdateRequest));
@@ -65,16 +68,31 @@ public class StockExchangeService {
         return stockExchangeMapper.map(stockExchangeRepository.findById(stockExchangeId).get());
     }
 
-    public StockExchangeDto deleteStockExchange(long stockExchangeId) {
+    @Transactional
+    public void deleteStockExchange(Long stockExchangeId) {
+        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock Exchange not found with id: " + stockExchangeId));
 
-        Optional<StockExchange> stockExchange = stockExchangeRepository.findById(stockExchangeId);
+        stockExchangeRepository.delete(stockExchange);
+        // StockListings are automatically deleted due to cascade
+        // Stocks remain untouched
+    }
 
-        if (stockExchange.isPresent()){
-            stockExchangeRepository.deleteById(stockExchangeId);
-            return stockExchangeMapper.map(stockExchange.get());
-        } else {
-            throw new ResourceNotFoundException("There is no Such Stock Exchange with id " + stockExchangeId);
+    public Page<StockDto> getAllStocksByExchange(Long stockExchangeId, int page, int size, String sortBy) {
+        if (!stockExchangeRepository.existsById(stockExchangeId)) {
+            throw new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId);
         }
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        Page<Stock> stockPage = stockListingRepository.findStocksByStockExchangeId(stockExchangeId, pageable);
+        return stockPage.map(stockMapper::map);
+    }
+
+    public Page<StockDto> getAllStocks(long id, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Stock> stockePage = stockListingRepository.findStocksByStockExchangeId(id, pageable);
+        return stockePage.map(stockMapper::map);
     }
 
     public StockExchangeDto getStockExchangeById(long id) {
@@ -83,59 +101,56 @@ public class StockExchangeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id " + id));
     }
 
-    public Page<StockDto> getAllStocks(long id,int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Stock> stockePage = stockListingRepository.findStocksByStockExchangeId(id,pageable);
-        return stockePage.map(stockMapper::map);
-    }
 
     @Transactional
-    public StockListing addStockToStockExchange(long stockExchangeId, long stockId) {
+    public StockListingDto addStockToStockExchange(Long stockExchangeId, Long stockId) {
 
         StockListingId listingId = new StockListingId(stockExchangeId, stockId);
-
-        if (stockListingRepository.findById(listingId).isPresent()) {
-            throw new IllegalStateException("Stock already listed on this stock exchange.");
+        if (stockListingRepository.existsById(listingId)) {
+            throw new DuplicateResourceException(
+                    "Stock with id " + stockId + " is already listed on Stock Exchange with id " + stockExchangeId);
         }
 
-        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId).orElseThrow(() -> new IllegalArgumentException("Stock Exchange not found"));
-        Stock stock = stockRepository.findById(stockId).orElseThrow(() -> new IllegalArgumentException("Stock Exchange not found"));
+        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock Exchange not found with id: " + stockExchangeId));
+
+        Stock stock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock not found with id: " + stockId));
 
         StockListing stockListing = new StockListing(stockExchange, stock);
         stockListingRepository.save(stockListing);
 
-        long count = getNumberOfStocks(stockExchangeId);
+        updateLiveMarketStatus(stockExchange);
 
-        boolean flag = count >= 10;
-
-        if (flag != stockExchange.isLiveInMarket()) {
-            stockExchange.setLiveInMarket(flag);
-            stockExchangeRepository.save(stockExchange);
-        }
-        return stockListing;
+        return new StockListingDto(stockExchangeMapper.map(stockExchange), stockMapper.map(stock));
     }
 
+
     @Transactional
-    public StockListing removeStockFromStockExchange(long stockExchangeId, long stockId) {
+    public void removeStockFromStockExchange(Long stockExchangeId, Long stockId) {
+        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock Exchange not found with id: " + stockExchangeId));
+
         StockListingId listingId = new StockListingId(stockExchangeId, stockId);
-        Optional<StockListing> stockListing = stockListingRepository.findById(listingId);
+        StockListing stockListing = stockListingRepository.findById(listingId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock with id " + stockId + " is not listed on this Stock Exchange"));
 
-        if (stockListing.isPresent()) {
-            stockListingRepository.deleteById(listingId);
-        } else {
-            throw new IllegalStateException("This Stock is not listed on this stock exchange.");
+        stockListingRepository.delete(stockListing);
+
+        updateLiveMarketStatus(stockExchange);
+    }
+
+    public void updateLiveMarketStatus(StockExchange stockExchange) {
+        long remainingStocks = getNumberOfStocks(stockExchange.getStockExchangeId());
+        boolean shouldBeLive = remainingStocks >= 10;
+
+        if (stockExchange.isLiveInMarket() != shouldBeLive) {
+            stockExchange.setLiveInMarket(shouldBeLive);
+            // No need to call save() if using @Transactional - changes are auto-detected
         }
-
-        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId).orElseThrow(() -> new IllegalArgumentException("Stock Exchange not found"));
-
-        long count = getNumberOfStocks(stockExchangeId);
-
-        boolean flag = count >= 10;
-
-        if (flag != stockExchange.isLiveInMarket()) {
-            stockExchange.setLiveInMarket(flag);
-            stockExchangeRepository.save(stockExchange);
-        }
-        return stockListing.get();
     }
 }

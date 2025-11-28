@@ -13,6 +13,5 @@ import java.util.List;
 @Repository
 public interface StockExchangeRepository extends JpaRepository<StockExchange, Long> {
 
-    @Query("SELECT se FROM StockExchange se WHERE se.liveInMarket = true")
-    Page<StockExchange> findStockExchangesLiveInMarket(Pageable pageable);
+    Page<StockExchange> findByLiveInMarketTrue(Pageable pageable);
 }
