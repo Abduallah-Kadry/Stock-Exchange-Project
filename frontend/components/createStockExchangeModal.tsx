@@ -14,32 +14,25 @@ import {Input} from "@/components/ui/input"
 import {Label} from "@/components/ui/label"
 import {Textarea} from "@/components/ui/textarea"
 import {Plus} from "lucide-react"
-import {createStock} from "@/lib/api"
+import {createStockExchange} from "@/lib/api"
+import {StockExchangeFormData, ValidationErrors, validateStockExchangeForm} from "@/lib/validation/stockExchangeValidation"
 
-import {StockFormData, validateStockForm} from "@/lib/validation/stockValidation"
-
-interface CreateStockModalProps {
-	onStockCreated: () => void
+interface CreateStockExchangeModalProps {
+	onExchangeCreated: () => void
 }
 
-export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
+export function CreateStockExchangeModal({onExchangeCreated}: CreateStockExchangeModalProps) {
 	const [open, setOpen] = useState(false)
 	const [isSubmitting, setIsSubmitting] = useState(false)
-	const [errors, setErrors] = useState<{
-		name?: string
-		description?: string
-		currentPrice?: string
-		general?: string
-	}>({})
+	const [errors, setErrors] = useState<ValidationErrors>({})
 
-	const [formData, setFormData] = useState<StockFormData>({
+	const [formData, setFormData] = useState<StockExchangeFormData>({
 		name: "",
-		description: "",
-		currentPrice: ""
+		description: ""
 	})
 
 	const validateForm = () => {
-		const { isValid, errors: validationErrors } = validateStockForm(formData);
+		const {isValid, errors: validationErrors} = validateStockExchangeForm(formData);
 		setErrors(validationErrors);
 		return isValid;
 	}
@@ -55,38 +48,29 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 		setErrors({})
 
 		try {
-			const stockData = {
+			const exchangeData = {
 				name: formData.name.trim(),
-				description: formData.description.trim(),
-				currentPrice: parseFloat(formData.currentPrice)
+				description: formData.description.trim()
 			}
-			const createdStock = await createStock(stockData);
 
-			if (!createdStock) {
+			const createdStockExchange = await createStockExchange(exchangeData);
+
+
+			if (!createdStockExchange) {
 				throw new Error('Failed to create stock: No data returned');
 			}
 
 			// Reset form and close modal
-			setFormData({name: "", description: "", currentPrice: ""});
+			setFormData({name: "", description: ""});
 			setOpen(false);
 
 			// Notify parent component to refresh the table
-			onStockCreated();
+			onExchangeCreated();
 		} catch (error: any) {
-			console.error("Error creating stock:", error)
-
-			// Handle validation errors from backend
-			if (error.response?.data?.errors) {
-				const backendErrors: typeof errors = {}
-				error.response.data.errors.forEach((err: any) => {
-					backendErrors[err.field as keyof typeof errors] = err.message
-				})
-				setErrors(backendErrors)
-			} else {
-				setErrors({
-					general: error.response?.data?.message || "Failed to create stock. Please try again."
-				})
-			}
+			console.error("Error creating stock exchange:", error)
+			setErrors({
+				general: error.message || "Failed to create stock exchange. Please try again."
+			});
 		} finally {
 			setIsSubmitting(false)
 		}
@@ -95,7 +79,7 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 	const handleInputChange = (field: keyof typeof formData, value: string) => {
 		setFormData(prev => ({...prev, [field]: value}))
 		// Clear error for this field when user starts typing
-		if (errors[field]) {
+		if (errors[field as keyof typeof errors]) {
 			setErrors(prev => ({...prev, [field]: undefined}))
 		}
 	}
@@ -103,7 +87,7 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 	const handleOpenChange = (newOpen: boolean) => {
 		if (!newOpen && !isSubmitting) {
 			// Only reset form when closing and not submitting
-			setFormData({name: "", description: "", currentPrice: ""})
+			setFormData({name: "", description: ""})
 			setErrors({})
 		}
 		setOpen(newOpen)
@@ -114,15 +98,15 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 			<DialogTrigger asChild>
 				<Button className="gap-2">
 					<Plus className="h-4 w-4"/>
-					Create Stock
+					Create Stock Exchange
 				</Button>
 			</DialogTrigger>
 			<DialogContent className="sm:max-w-[500px]">
 				<form onSubmit={handleSubmit}>
 					<DialogHeader>
-						<DialogTitle>Create New Stock</DialogTitle>
+						<DialogTitle>Create New Stock Exchange</DialogTitle>
 						<DialogDescription>
-							Add a new stock to your portfolio. Fill in all the required information below.
+							Add a new stock exchange to the system. Fill in all the required information below.
 						</DialogDescription>
 					</DialogHeader>
 
@@ -135,11 +119,11 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 
 						<div className="grid gap-2">
 							<Label htmlFor="name">
-								Stock Name <span className="text-destructive">*</span>
+								Exchange Name <span className="text-destructive">*</span>
 							</Label>
 							<Input
 								id="name"
-								placeholder="e.g., Apple Inc."
+								placeholder="e.g., New York Stock Exchange"
 								value={formData.name}
 								onChange={(e) => handleInputChange("name", e.target.value)}
 								maxLength={30}
@@ -159,7 +143,7 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 							</Label>
 							<Textarea
 								id="description"
-								placeholder="Brief description of the stock"
+								placeholder="Brief description of the stock exchange"
 								value={formData.description}
 								onChange={(e) => handleInputChange("description", e.target.value)}
 								maxLength={30}
@@ -173,51 +157,19 @@ export function CreateStockModal({onStockCreated}: CreateStockModalProps) {
 								{formData.description.length}/30 characters
 							</p>
 						</div>
-
-						<div className="grid gap-2">
-							<Label htmlFor="currentPrice">
-								Current Price (USD) <span className="text-destructive">*</span>
-							</Label>
-							<div className="relative">
-                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                  $
-                </span>
-								<Input
-									id="currentPrice"
-									type="number"
-									step="0.01"
-									min="0"
-									placeholder="0.00"
-									value={formData.currentPrice}
-									onChange={(e) => handleInputChange("currentPrice", e.target.value)}
-									className={`pl-7 ${errors.currentPrice ? "border-destructive" : ""}`}
-								/>
-							</div>
-							{errors.currentPrice && (
-								<p className="text-sm text-destructive">{errors.currentPrice}</p>
-							)}
-						</div>
 					</div>
 
 					<DialogFooter>
 						<Button
 							type="button"
 							variant="outline"
-							onClick={() => setOpen(false)}
+							onClick={() => handleOpenChange(false)}
 							disabled={isSubmitting}
 						>
 							Cancel
 						</Button>
 						<Button type="submit" disabled={isSubmitting}>
-							{isSubmitting ? (
-								<>
-									<div
-										className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"/>
-									Creating...
-								</>
-							) : (
-								"Create Stock"
-							)}
+							{isSubmitting ? "Creating..." : "Create Exchange"}
 						</Button>
 					</DialogFooter>
 				</form>

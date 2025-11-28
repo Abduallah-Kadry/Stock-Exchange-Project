@@ -5,3 +5,12 @@ export interface Stock {
   currentPrice: number;
   updatedAt: string;
 }
+
+
+export interface Stock {
+  stockId: string;
+  name: string;
+  description: string;
+  currentPrice: number;
+  updatedAt: string;
+}

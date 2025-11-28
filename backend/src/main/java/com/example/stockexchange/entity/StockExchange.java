@@ -18,7 +18,7 @@ public class StockExchange {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stock_id")
-    private long stockExchangeId;
+    private Long stockExchangeId;
 
     @Column(name = "name")
     private String name;

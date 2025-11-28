@@ -8,9 +8,7 @@ import { fetchStocks } from "@/lib/api"
 import { Stock } from "@/types/Stock"
 import {CreateStockModal} from "@/components/createStockModal";
 
-
 // todo problem with table and problem with saving with update date
-
 
 export function StockTable() {
   const [stocks, setStocks] = useState<Stock[]>([])

@@ -9,6 +9,7 @@ import com.example.stockexchange.response.ApiRespond;
 import com.example.stockexchange.service.StockExchangeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -28,7 +29,7 @@ public class StockExchangeController {
 
     @Operation(summary = "Get all stockExchanges on pages default page size 5", description = "Retrieve a pages of stockExchanges in the system")
     @PreAuthorize("ROLE_USER")
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<ApiRespond> getAllStockExchanges(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
@@ -66,7 +67,7 @@ public class StockExchangeController {
 
     @Operation(summary = "Get all stocks in A particular StockExchange which A on pages default page size 5", description = "Get all stocks in A particular StockExchange which A on pages default page size 5")
     @PreAuthorize("ROLE_USER")
-    @GetMapping("/stock-exchanges/{id}/stocks")
+    @GetMapping("/{id}/stocks")
     public ResponseEntity<ApiRespond> getAllStocksByExchange(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
@@ -80,8 +81,8 @@ public class StockExchangeController {
     @Operation(summary = "create a new StockExchange on the system", description = "create a new StockExchange on the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
-    @PostMapping("/create")
-    public ResponseEntity<ApiRespond> createStockExchange(StockExchangeCreationRequest stockExchangeCreationRequest) {
+    @PostMapping("")
+    public ResponseEntity<ApiRespond> createStockExchange(@Valid @RequestBody StockExchangeCreationRequest stockExchangeCreationRequest) {
 
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "StockExchange created successfully", stockExchangeService.createStockExchange(stockExchangeCreationRequest)));
@@ -92,7 +93,7 @@ public class StockExchangeController {
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_USER")
     @PutMapping("/{id}")
-    public ResponseEntity<ApiRespond> updateStockExchange(@PathVariable long id, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
+    public ResponseEntity<ApiRespond> updateStockExchange(@PathVariable long id,@Valid @RequestBody StockExchangeUpdateRequest stockExchangeUpdateRequest) {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
                 "Stock Price updated successfully", stockExchangeService.updateStockExchange(id, stockExchangeUpdateRequest)));
     }

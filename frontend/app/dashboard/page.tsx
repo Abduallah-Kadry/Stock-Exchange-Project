@@ -1,7 +1,10 @@
 
 
+"use client";
+
 import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
 import {StockTable} from "@/components/stock-table";
+import {StockExchangeTable} from "@/components/stock-exchange-table";
 
 export default async function DashboardPage() {
 
@@ -16,7 +19,7 @@ export default async function DashboardPage() {
 					<StockTable/>
 				</TabsContent>
 				<TabsContent value="exchanges" className="mt-4">
-					<p>Stock Exchanges Table Here...</p>
+					<StockExchangeTable />
 				</TabsContent>
 			</Tabs>
 		</div>

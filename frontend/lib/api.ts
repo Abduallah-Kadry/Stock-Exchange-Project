@@ -46,7 +46,7 @@ export const logoutUser = async (): Promise<{ success: boolean }> => {
 		});
 
 		if (response.ok) {
-			toast.success('Successfully logged out', { duration: 2000 });
+			toast.success('Successfully logged out', {duration: 2000});
 		} else {
 			throw new Error('Logout failed');
 		}
@@ -92,6 +92,19 @@ export interface CreateStockRequest {
 	currentPrice: number
 }
 
+export interface StockExchange {
+	id: string;
+	name: string;
+	description: string;
+	liveInMarket: boolean;
+	lastRefresh: string;
+}
+
+export interface CreateStockExchangeRequest {
+	name: string;
+	description: string;
+}
+
 // Update your existing createStock function in api.ts
 export async function createStock(stock: CreateStockRequest): Promise<Stock> {
 
@@ -126,7 +139,51 @@ export async function createStock(stock: CreateStockRequest): Promise<Stock> {
 		};
 	}
 
+	return responseData.data;
+}
+
+export async function fetchStockExchanges(page: number = 0, size: number = 5): Promise<PaginatedResponse<StockExchange>> {
+	try {
+		const response = await fetchWithAuth(`/stockExchange?page=${page}&size=${size}`);
+		if (!response.ok) {
+			throw new Error('Failed to fetch stock exchanges');
+		}
+		const responseData = await response.json()
+		return responseData.data;
+	} catch (error) {
+		console.error('Error fetching stock exchanges:', error);
+		throw error;
+	}
+}
+
+export async function createStockExchange(exchange: CreateStockExchangeRequest): Promise<StockExchange> {
+	const response = await fetchWithAuth('/stockExchange', {
+		method: 'POST',
+		body: JSON.stringify(exchange),
+	});
+
+	const responseData = await response.json();
+
+	if (!response.ok) {
+		if (response.status === 400 && responseData.errors) {
+			throw {
+				response: {
+					data: {
+						errors: responseData.errors,
+						message: responseData.message || 'Validation failed'
+					},
+					status: response.status
+				}
+			};
+		}
+
+		throw {
+			response: {
+				data: responseData,
+				status: response.status
+			}
+		};
+	}
 
 	return responseData.data;
-
 }
