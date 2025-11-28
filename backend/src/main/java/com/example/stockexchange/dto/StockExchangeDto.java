@@ -14,4 +14,5 @@ public class StockExchangeDto {
     private String description;
 
     private boolean liveInMarket;
+
 }

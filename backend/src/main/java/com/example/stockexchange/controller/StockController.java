@@ -5,6 +5,7 @@ import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.request.StockCreationRequest;
 import com.example.stockexchange.request.StockPriceUpdateRequest;
 import com.example.stockexchange.response.ApiRespond;
+import com.example.stockexchange.response.CreateStockResponse;
 import com.example.stockexchange.service.StockService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -15,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RequestMapping("${app.paths.api-base}${app.paths.api-version}/stock")
 @RequiredArgsConstructor
@@ -31,9 +33,17 @@ public class StockController {
     public ResponseEntity<ApiRespond> getAllStocks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "5") int size) {
-
         Page<StockDto> stocks = stockService.getAllStocks(page, size);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks", stocks));
+    }
+
+
+    @Operation(summary = "get stock by id", description = "get stock by id")
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiRespond> getStockById(@PathVariable Long id) {
+
+        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Stock with id: %d found".formatted(id), stockService.getStockById(id)));
 
     }
 
@@ -45,17 +55,17 @@ public class StockController {
             @RequestParam(defaultValue = "5") int size,
             @PathVariable long id) {
 
-        Page<StockExchangeDto> stockExchangeDto = stockService.getAllStockExchangesOwnParticularStock(id ,page, size);
+        Page<StockExchangeDto> stockExchangeDto = stockService.getAllStockExchangesOwnParticularStock(id, page, size);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Page Stocks In This StockExchange", stockExchangeDto));
     }
+
 
     @Operation(summary = "create a stock on the system", description = "create a new stock on the system")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("ROLE_ADMIN")
     @PostMapping("")
-    public ResponseEntity<ApiRespond> createStock(StockCreationRequest stockCreationRequest) {
-
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
+    public ResponseEntity<ApiRespond<CreateStockResponse>> createStock(@Valid @RequestBody StockCreationRequest stockCreationRequest) {
+        return ResponseEntity.ok(new ApiRespond<>(HttpStatus.OK,
                 "Stock created successfully", stockService.createStock(stockCreationRequest)));
 
     }

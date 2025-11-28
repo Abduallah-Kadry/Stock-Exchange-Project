@@ -1,12 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { validateRequiredFields, validatePasswords } from "@/lib/validators";
 import { registerAction } from "./actions";
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async (formData: {
@@ -48,6 +50,10 @@ export default function RegisterPage() {
 
       if (result.type === 'success') {
         toast.success(result.message || 'Registration successful!');
+        // Redirect to login page after 1.5 seconds
+        setTimeout(() => {
+          router.push('/login');
+        }, 1500);
       } else {
         throw new Error(result.message);
       }

@@ -21,5 +21,5 @@ public class StockCreationRequest {
 
     @NotNull(message = "Price is mandatory")
     @Min(value = 0, message = "Price must equal or be more than zero")
-    private double currentPrice;
+    private Double currentPrice;
 }

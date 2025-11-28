@@ -77,6 +77,12 @@ public class StockExchangeService {
         }
     }
 
+    public StockExchangeDto getStockExchangeById(long id) {
+        return stockExchangeRepository.findById(id)
+                .map(stockExchangeMapper::map)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id " + id));
+    }
+
     public Page<StockDto> getAllStocks(long id,int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Stock> stockePage = stockListingRepository.findStocksByStockExchangeId(id,pageable);

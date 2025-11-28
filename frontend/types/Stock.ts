@@ -1,8 +1,7 @@
 export interface Stock {
-  id: string;
-  tickerSymbol: string;
-  companyName: string;
+  stockId: string;
+  name: string;
   description: string;
-  marketCap: number;
-  listingDate: string;
+  currentPrice: number;
+  updatedAt: string;
 }

@@ -1,29 +1,93 @@
-# Backend (Maven/Spring Boot)
-backend/target/
-backend/.mvn/
-
-# Frontend (Next.js)
+# Frontend (Next.js/Node.js)
+## Dependencies
 frontend/node_modules/
+frontend/.pnp
+frontend/.pnp.*
+frontend/.yarn/*
+!frontend/.yarn/patches
+!frontend/.yarn/plugins
+!frontend/.yarn/releases
+!frontend/.yarn/versions
+
+## Testing
+frontend/coverage/
+
+## Next.js
 frontend/.next/
 frontend/out/
-frontend/.env*.local
 
-# IDE
+## Production
+frontend/build
+
+## Environment files
+frontend/.env*
+frontend/.vercel
+
+## Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/.pnpm-debug.log*
+
+## System Files
+.DS_Store
+*.pem
+
+## TypeScript
+frontend/*.tsbuild.info
+frontend/next-env.d.ts
+
+# Backend (Java/Spring)
+## Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+## IntelliJ IDEA
 .idea/
-.idea/*
 *.iml
-.vscode/
-.idea
 *.iws
 *.ipr
+.idea_modules/
 
+## Compiled class file
+*.class
 
-# OS
-.DS_Store
+## Log file
+*.log
+
+## Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+## virtual machine crash logs
+hs_err_pid*
+
+# Data files
+/data/
+!data/README.md
+
+# OS generated files
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# H2 database files
+
+# IDE specific files
+
+# Maven
+backend/.mvn/
+.mvn/
+
+# Database files
 data/*.db
-data/*.lock.db
-data/*.mv.db
-data/*
+!data/README.md  # Keep README if you have one

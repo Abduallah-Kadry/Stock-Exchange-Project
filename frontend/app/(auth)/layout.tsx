@@ -1,7 +1,6 @@
 'use client';
 
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Toaster } from 'react-hot-toast';
 
 export default function AuthLayout({
   children,
@@ -14,13 +13,9 @@ export default function AuthLayout({
       <div className="fixed top-4 right-4 z-50">
         <ThemeToggle />
       </div>
-
-      < >
+      <>
         {children}
       </>
-
-      {/* Toast Notifications */}
-      <Toaster position="top-center" />
     </>
   );
 }
