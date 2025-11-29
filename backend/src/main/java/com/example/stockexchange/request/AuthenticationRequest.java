@@ -3,9 +3,10 @@ package com.example.stockexchange.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+import lombok.Data;
 import lombok.Getter;
 
-@Getter
+@Data
 public class AuthenticationRequest {
 
     @NotEmpty(message = "Email is mandatory")

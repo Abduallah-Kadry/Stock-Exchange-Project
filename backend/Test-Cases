@@ -53,3 +53,90 @@ Success, Exchange Not Found, Stock Not Listed, Update Live Status to False, No L
 5. updateLiveMarketStatus - 8 tests
 
 Set to True, Set to False, No Change When Already Live, No Change When Already Not Live, Exactly 10 Stocks, Zero Stocks, Large Number of Stocks, Transition from Live to Not Live
+
+Test Structure:
+
+Generate Token Tests
+
+Successful token generation
+Username inclusion
+Authorities inclusion
+Different tokens for different users
+Expiration time setting
+Empty authorities handling
+
+
+Extract Username Tests
+
+Valid token extraction
+Different users extraction
+Malformed token handling
+Null/empty token handling
+Invalid signature handling
+
+
+Token Validation Tests
+
+Valid token validation
+Wrong user invalidation
+Expired token handling
+Username matching
+Null user details
+Malformed token
+
+
+Token Lifecycle Tests
+
+Full generate-validate lifecycle
+Multiple tokens for same user
+Validity throughout lifetime
+
+
+Edge Cases and Security Tests
+
+Special characters in username
+Long username handling
+Multiple authorities
+User details changes
+
+Test Structure:
+
+Register Tests (8 tests)
+
+Successful registration
+Email already taken handling
+ROLE_USER assignment
+First user gets ROLE_ADMIN
+Password encoding
+Correct user details saving
+Special characters in names
+Email with plus sign
+
+
+Login Tests (9 tests)
+
+Successful login
+Email not found
+Incorrect password
+Correct credentials authentication
+JWT token generation
+Authentication manager exceptions
+Authentication response validation
+Null authentication result
+Token verification
+
+
+Integration Scenarios Tests (3 tests)
+
+Register then login flow
+Prevent duplicate registration
+Case-sensitive email handling
+
+
+Edge Cases Tests (5 tests)
+
+Very long password
+Empty first name
+User with multiple authorities
+Concurrent first user registration
+Boundary conditions
