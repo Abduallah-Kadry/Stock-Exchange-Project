@@ -4,10 +4,11 @@ import { useEffect, useState } from "react"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { fetchStockExchanges } from "@/lib/api"
-import { StockExchange } from "@/lib/api"
 import { Circle } from "lucide-react"
-import {CreateStockExchangeModal} from "@/components/createStockExchangeModal";
+import { fetchStockExchanges } from "@/lib/api"
+import { StockExchange } from "@/types/Stock"
+import { CreateStockExchangeModal } from "@/components/createStockExchangeModal"
+import { UpdateStockExchangeModal } from "@/components/updateStockExchangeModal"
 
 export function StockExchangeTable() {
   const [exchanges, setExchanges] = useState<StockExchange[]>([])
@@ -73,25 +74,26 @@ export function StockExchangeTable() {
               <TableHead className="font-semibold">Name</TableHead>
               <TableHead className="font-semibold">Description</TableHead>
               <TableHead className="font-semibold text-center">Status</TableHead>
+              <TableHead className="w-24"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4">
+                <TableCell colSpan={5} className="text-center py-4">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : exchanges.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-4">
+                <TableCell colSpan={5} className="text-center py-4">
                   No stock exchanges found
                 </TableCell>
               </TableRow>
             ) : (
               exchanges.map((exchange, index) => (
-                <TableRow key={exchange.id} className="hover:bg-muted/50">
-                  <TableCell>{getRowNumber(index)}</TableCell>
+                <TableRow key={exchange.stockExchangeId} className="hover:bg-muted/50">
+                  <TableCell>{exchange.stockExchangeId}</TableCell>
                   <TableCell className="font-medium">{exchange.name}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {exchange.description || 'No description available'}
@@ -102,6 +104,14 @@ export function StockExchangeTable() {
                         className={`h-3 w-3 mr-2 ${exchange.liveInMarket ? 'text-green-500 fill-green-500' : 'text-gray-400 fill-gray-400'}`} 
                       />
                       {exchange.liveInMarket ? 'Live' : 'Closed'}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex justify-end space-x-2">
+                      <UpdateStockExchangeModal 
+                        exchange={exchange}
+                        onExchangeUpdated={loadExchanges}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>

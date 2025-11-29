@@ -2,6 +2,7 @@ import {RegisterRequest} from '@/types/auth';
 import {ResponseMessage} from "@/types/ResponseMessage";
 import {toast} from 'react-hot-toast';
 import {Stock} from "@/types/Stock";
+import {StockExchange} from "@/types/Stock";
 
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
@@ -92,14 +93,6 @@ export interface CreateStockRequest {
 	currentPrice: number
 }
 
-export interface StockExchange {
-	id: string;
-	name: string;
-	description: string;
-	liveInMarket: boolean;
-	lastRefresh: string;
-}
-
 export interface CreateStockExchangeRequest {
 	name: string;
 	description: string;
@@ -156,10 +149,88 @@ export async function fetchStockExchanges(page: number = 0, size: number = 5): P
 	}
 }
 
+export interface UpdateStockExchangeRequest {
+  name: string;
+  description: string;
+  liveInMarket: boolean;
+}
+
+export async function updateStockExchange(id: string, exchange: UpdateStockExchangeRequest): Promise<StockExchange> {
+	console.log(id)
+	console.log(exchange)
+  const response = await fetchWithAuth(`/stockExchange/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(exchange),
+  });
+  const responseData = await response.json();
+
+  if (!response.ok) {
+    if (response.status === 400 && responseData.errors) {
+      throw {
+        response: {
+          data: {
+            errors: responseData.errors,
+            message: responseData.message || 'Validation failed'
+          },
+          status: response.status
+        }
+      };
+    }
+
+    throw {
+      response: {
+        data: responseData,
+        status: response.status
+      }
+    };
+  }
+
+  return responseData.data;
+}
+
 export async function createStockExchange(exchange: CreateStockExchangeRequest): Promise<StockExchange> {
 	const response = await fetchWithAuth('/stockExchange', {
 		method: 'POST',
 		body: JSON.stringify(exchange),
+	});
+
+	const responseData = await response.json();
+
+	if (!response.ok) {
+		if (response.status === 400 && responseData.errors) {
+			throw {
+				response: {
+					data: {
+						errors: responseData.errors,
+						message: responseData.message || 'Validation failed'
+					},
+					status: response.status
+				}
+			};
+		}
+
+		throw {
+			response: {
+				data: responseData,
+				status: response.status
+			}
+		};
+	}
+
+	return responseData.data;
+}
+
+export interface UpdateStockRequest {
+	currentPrice: number;
+}
+
+export async function updateStock(id: string, stock: UpdateStockRequest): Promise<Stock> {
+	const response = await fetchWithAuth(`/stock/${id}/price`, {
+		method: 'PUT',
+		body: JSON.stringify({
+			...stock,
+			currentPrice: Number(stock.currentPrice) // Ensure it's a number
+		}),
 	});
 
 	const responseData = await response.json();

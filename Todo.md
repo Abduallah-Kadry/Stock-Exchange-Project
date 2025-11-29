@@ -5,18 +5,20 @@ copy this
   - [ ]
 # TODO 
 - [x] make the update modal
-    - [ ] check the stock price incident
+    - [x] check the stock price incident
 - [ ] make the stock details
   - [ ] make the it retraive it's registerd stock exchange
-- [ ] make the stock exchange tab
-    - [ ] make the create modal
-    - [ ] make the update modal
+- [] make the stock exchange tab
+    - [x] make the create modal
+    - [x] make the update modal
 - [ ] make the stock exchange details
   - [ ] make the it retrieve it's registerd stocks 
 
 
+
+
 - [ ] styles
-  - create modla button
+  - create modal button
   - table show rows number button
   - table style
   - 

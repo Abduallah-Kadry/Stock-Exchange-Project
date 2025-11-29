@@ -102,12 +102,12 @@ public class StockExchangeController {
     @PreAuthorize("hasRole('USER')")
     @PutMapping(value = "/{id}")
     public ResponseEntity<ApiRespond<StockExchangeDto>> updateStockExchange(
-            @PathVariable @Positive long id,
+            @PathVariable @Positive Long id,
             @Valid @RequestBody StockExchangeUpdateRequest request) {
 
         StockExchangeDto updatedStockExchange = stockExchangeService.updateStockExchange(id, request);
 
-        return ResponseEntity.ok(new ApiRespond<>(
+        return ResponseEntity.ok(new ApiRespond(
                 HttpStatus.OK,
                 "Stock exchange updated successfully",
                 updatedStockExchange

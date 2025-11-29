@@ -6,11 +6,10 @@ export interface Stock {
   updatedAt: string;
 }
 
-
-export interface Stock {
-  stockId: string;
+export interface StockExchange {
+  stockExchangeId: string
   name: string;
   description: string;
-  currentPrice: number;
-  updatedAt: string;
+  liveInMarket:boolean;
+
 }

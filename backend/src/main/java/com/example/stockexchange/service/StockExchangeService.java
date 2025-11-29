@@ -62,11 +62,12 @@ public class StockExchangeService {
     public StockExchangeDto updateStockExchange(long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
         StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId));
-        
+
         stockExchangeMapper.map(stockExchangeUpdateRequest, stockExchange);
         StockExchange updatedStockExchange = stockExchangeRepository.save(stockExchange);
-        
+
         return stockExchangeMapper.map(updatedStockExchange);
+
     }
 
     @Transactional
