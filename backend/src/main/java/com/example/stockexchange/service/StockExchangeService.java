@@ -36,7 +36,7 @@ public class StockExchangeService {
     private final StockExchangeMapper stockExchangeMapper;
     private final StockMapper stockMapper;
 
-    public Page<StockExchangeDto> getAllStockExchange(int page, int size) {
+    public Page<StockExchangeDto> getAllStockExchanges(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<StockExchange> stockExchangePage = stockExchangeRepository.findAll(pageable);
         return stockExchangePage.map(stockExchangeMapper::map);
@@ -48,7 +48,7 @@ public class StockExchangeService {
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
-    private long getNumberOfStocks(long stockExchangeId) {
+    private Long getNumberOfStocks(long stockExchangeId) {
         return stockListingRepository.countByStockExchangeId(stockExchangeId);
     }
 
@@ -60,7 +60,7 @@ public class StockExchangeService {
 
     public StockExchangeDto updateStockExchange(long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
 
-        if (stockExchangeRepository.findById(stockExchangeId).isPresent()){
+        if (stockExchangeRepository.findById(stockExchangeId).isPresent()) {
             stockExchangeRepository.save(stockExchangeMapper.map(stockExchangeUpdateRequest));
         } else {
             throw new ResourceNotFoundException("There is no Such Stock Exchange with id " + stockExchangeId);
@@ -88,19 +88,6 @@ public class StockExchangeService {
         Page<Stock> stockPage = stockListingRepository.findStocksByStockExchangeId(stockExchangeId, pageable);
         return stockPage.map(stockMapper::map);
     }
-
-    public Page<StockDto> getAllStocks(long id, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Stock> stockePage = stockListingRepository.findStocksByStockExchangeId(id, pageable);
-        return stockePage.map(stockMapper::map);
-    }
-
-    public StockExchangeDto getStockExchangeById(long id) {
-        return stockExchangeRepository.findById(id)
-                .map(stockExchangeMapper::map)
-                .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id " + id));
-    }
-
 
     @Transactional
     public StockListingDto addStockToStockExchange(Long stockExchangeId, Long stockId) {

@@ -53,7 +53,7 @@ public class User {
     private String updatedBy;
 
     @Version
-    private int version;
+    private Integer version;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "user_authorities", joinColumns = @JoinColumn(name = "user_id"))

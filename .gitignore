@@ -1,5 +1,8 @@
-# Frontend (Next.js/Node.js)
-## Dependencies
+# ===========================
+# FRONTEND (Next.js / Node.js)
+# ===========================
+
+# Dependencies
 frontend/node_modules/
 frontend/.pnp
 frontend/.pnp.*
@@ -9,55 +12,57 @@ frontend/.yarn/*
 !frontend/.yarn/releases
 !frontend/.yarn/versions
 
-## Testing
+# Testing
 frontend/coverage/
 
-## Next.js
+# Next.js build output
 frontend/.next/
 frontend/out/
 
-## Production
-frontend/build
+# Production build
+frontend/build/
 
-## Environment files
+# Environment Files
 frontend/.env*
-frontend/.vercel
+frontend/.vercel/
 
-## Debug logs
+# Debug Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 frontend/.pnpm-debug.log*
 
-## System Files
-.DS_Store
-*.pem
-
-## TypeScript
+# TypeScript
 frontend/*.tsbuild.info
 frontend/next-env.d.ts
 
-# Backend (Java/Spring)
-## Maven
-target/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# System Files
+.DS_Store
+*.pem
 
-## IntelliJ IDEA
+
+# ===========================
+# BACKEND (Java / Spring Boot)
+# ===========================
+
+# Maven target folders
+backend/target/
+target/
+!backend/.mvn/wrapper/maven-wrapper.jar
+
+# IntelliJ IDEA
 .idea/
 *.iml
 *.iws
 *.ipr
-.idea_modules/
 
-## Compiled class file
+# Compiled class files
 *.class
 
-## Log file
+# Logs
 *.log
 
-## Package Files
+# Packaging files
 *.jar
 *.war
 *.nar
@@ -66,28 +71,27 @@ target/
 *.tar.gz
 *.rar
 
-## virtual machine crash logs
+# VM Crash Logs
 hs_err_pid*
 
-# Data files
-/data/
-!data/README.md
+# ===========================
+# DATABASE FILES (H2 or local DB)
+# ===========================
+backend/data/*.mv.db
+backend/data/*.trace.db
+backend/data/*.lock.db
+backend/data/*.db
 
-# OS generated files
+# Keep readme
+!backend/data/README.md
+
+
+# ===========================
+# OTHER OS-GENERATED FILES
+# ===========================
 .DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-
-# IDE specific files
-
-# Maven
-backend/.mvn/
-.mvn/
-
-# Database files
-data/*.db
-!data/README.md  # Keep README if you have one

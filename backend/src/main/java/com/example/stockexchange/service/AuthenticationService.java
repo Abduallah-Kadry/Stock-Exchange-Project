@@ -50,6 +50,7 @@ public class AuthenticationService {
 
             User user = userRepository.findByEmail(request.getEmail())
                     .orElseThrow(() -> new InvalidCredentialException("Invalid email or password"));
+
             UserCredintials userCredintials = new UserCredintials(user);
 
             String jwtToken = jwtService.generateToken(new HashMap<>(), userCredintials);

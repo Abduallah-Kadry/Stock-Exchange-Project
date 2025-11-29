@@ -5,6 +5,7 @@ import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.entity.Stock;
 import com.example.stockexchange.entity.StockExchange;
 import com.example.stockexchange.entity.StockListing;
+import com.example.stockexchange.exception.DuplicateResourceException;
 import com.example.stockexchange.exception.ResourceNotFoundException;
 import com.example.stockexchange.mapper.StockExchangeMapper;
 import com.example.stockexchange.mapper.StockMapper;
@@ -12,15 +13,18 @@ import com.example.stockexchange.repository.StockListingRepository;
 import com.example.stockexchange.repository.StockRepository;
 import com.example.stockexchange.request.StockCreationRequest;
 import com.example.stockexchange.request.StockPriceUpdateRequest;
-import com.example.stockexchange.response.CreateStockResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -34,35 +38,54 @@ public class StockService {
     private final StockExchangeService stockExchangeService;
 
 
-    public Page<StockDto> getAllStocks(int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+    public Page<StockDto> getAllStocks(
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        Sort.Direction sortDirection = direction.equalsIgnoreCase("desc")
+                ? Sort.Direction.DESC
+                : Sort.Direction.ASC;
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortBy));
         Page<Stock> stockPage = stockRepository.findAll(pageable);
         return stockPage.map(stockMapper::map);
     }
 
-    public Page<StockExchangeDto> getAllStockExchangesOwnParticularStock(long stockId,int page, int size) {
+    public Page<StockExchangeDto> getAllStockExchangesByStock(Long stockId, int page, int size) {
+        if (!stockRepository.existsById(stockId)) {
+            throw new ResourceNotFoundException("Stock not found with id: " + stockId);
+        }
+
         Pageable pageable = PageRequest.of(page, size);
-        Page<StockExchange> stockExchangePage = stockListingRepository.findStockExchangesByStockId(stockId,pageable);
+        Page<StockExchange> stockExchangePage = stockListingRepository.findStockExchangesByStockId(stockId, pageable);
 
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
     @Transactional
-    public CreateStockResponse createStock(StockCreationRequest stockCreationRequest) {
+    public StockDto createStock(StockCreationRequest stockCreationRequest) {
+        // Check if stock with same symbol already exists
+        if (stockRepository.existsByName(stockCreationRequest.getName())) {
+            throw new DuplicateResourceException(
+                    "Stock with name " + stockCreationRequest.getName() + " already exists");
+        }
+
         Stock stock = stockMapper.map(stockCreationRequest);
-        stockRepository.save(stock);
-        return stockMapper.toCreatStockResponse(stock);
+        Stock savedStock = stockRepository.save(stock);
+        return stockMapper.map(savedStock);
     }
 
     @Transactional
-    public StockDto updatePrice(long stockId, StockPriceUpdateRequest stockPriceUpdateRequest) {
-        if(stockRepository.findById(stockId).isPresent()) {
-            Stock stock = stockMapper.map(stockPriceUpdateRequest);
-            stockRepository.save(stock);
-            return stockMapper.map(stock);
-        } else {
-            throw new ResourceNotFoundException("Stock Not Found!");
-        }
+    public StockDto updatePrice(Long stockId, StockPriceUpdateRequest stockPriceUpdateRequest) {
+        Stock stock = stockRepository.findById(stockId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock not found with id: " + stockId));
+
+        // Update only the price field
+        stock.setCurrentPrice(stockPriceUpdateRequest.getCurrentPrice());
+        // No need to call save() - @Transactional handles it with dirty checking
+        return stockMapper.map(stock);
     }
 
     @Transactional
@@ -78,11 +101,5 @@ public class StockService {
         stockRepository.delete(stock);
 
         affectedExchanges.forEach(stockExchangeService::updateLiveMarketStatus);
-    }
-
-    public StockDto getStockById(Long stockId) {
-
-        return stockMapper.map(stockRepository.findById(stockId)
-                .orElseThrow(() -> new ResourceNotFoundException("Stock Not Found!")));
     }
 }

@@ -3,13 +3,16 @@ package com.example.stockexchange.controller;
 
 import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
+import com.example.stockexchange.dto.StockListingDto;
 import com.example.stockexchange.request.StockExchangeCreationRequest;
 import com.example.stockexchange.request.StockExchangeUpdateRequest;
 import com.example.stockexchange.response.ApiRespond;
 import com.example.stockexchange.service.StockExchangeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -27,26 +30,21 @@ public class StockExchangeController {
 
     private final StockExchangeService stockExchangeService;
 
-    @Operation(summary = "Get all stockExchanges on pages default page size 5", description = "Retrieve a pages of stockExchanges in the system")
-    @PreAuthorize("ROLE_USER")
-    @GetMapping("")
+    @Operation(summary = "Get all Stock Exchanges", description = "Retrieves a paginated list of all Stock Exchanges")
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping
     public ResponseEntity<ApiRespond> getAllStockExchanges(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "5") int size) {
+            @RequestParam(defaultValue = "10") int size) {
 
-        Page<StockExchangeDto> stockExchanges = stockExchangeService.getAllStockExchange(page, size);
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available StockExchanges", stockExchanges));
+        Page<StockExchangeDto> stockExchanges = stockExchangeService.getAllStockExchanges(page, size);
 
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stock Exchanges retrieved successfully",
+                stockExchanges
+        ));
     }
-
-    @Operation(summary = "Get stock exchange by ID", description = "Retrieve a specific stock exchange by its ID")
-    @PreAuthorize("ROLE_USER")
-    @GetMapping("/{id}")
-    public ResponseEntity<ApiRespond> getStockExchangeById(@PathVariable long id) {
-        StockExchangeDto stockExchange = stockExchangeService.getStockExchangeById(id);
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "Stock Exchange retrieved successfully", stockExchange));
-    }
-
 
     @Operation(summary = "Get all live Stock Exchanges", description = "Retrieves all Stock Exchanges that are currently live in the market")
     @PreAuthorize("hasRole('USER')")
@@ -64,10 +62,9 @@ public class StockExchangeController {
         ));
     }
 
-
     @Operation(summary = "Get all stocks in A particular StockExchange which A on pages default page size 5", description = "Get all stocks in A particular StockExchange which A on pages default page size 5")
-    @PreAuthorize("ROLE_USER")
-    @GetMapping("/{id}/stocks")
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/stock-exchanges/{id}/stocks")
     public ResponseEntity<ApiRespond> getAllStocksByExchange(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
@@ -78,53 +75,87 @@ public class StockExchangeController {
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks In StockExchange", stocks));
     }
 
-    @Operation(summary = "create a new StockExchange on the system", description = "create a new StockExchange on the system")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @PostMapping("")
-    public ResponseEntity<ApiRespond> createStockExchange(@Valid @RequestBody StockExchangeCreationRequest stockExchangeCreationRequest) {
+    @Operation(summary = "Create a new stock exchange", description = "Creates a new stock exchange in the system")
+    @ApiResponse(responseCode = "201", description = "Stock exchange created successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request data")
+    @ApiResponse(responseCode = "409", description = "Stock exchange with same name already exists")
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping()
+    public ResponseEntity<ApiRespond> createStockExchange(
+            @Valid @RequestBody StockExchangeCreationRequest request) {
 
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "StockExchange created successfully", stockExchangeService.createStockExchange(stockExchangeCreationRequest)));
+        StockExchangeDto createdStockExchange = stockExchangeService.createStockExchange(request);
 
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiRespond(
+                        HttpStatus.CREATED,
+                        "Stock exchange created successfully",
+                        createdStockExchange
+                ));
     }
 
-    @Operation(summary = "update a stockExchange on the system", description = "update a existing stockExchange in the system")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @PutMapping("/{id}")
-    public ResponseEntity<ApiRespond> updateStockExchange(@PathVariable long id,@Valid @RequestBody StockExchangeUpdateRequest stockExchangeUpdateRequest) {
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "Stock Price updated successfully", stockExchangeService.updateStockExchange(id, stockExchangeUpdateRequest)));
+    @Operation(summary = "Update a stock exchange", description = "Updates an existing stock exchange in the system")
+    @ApiResponse(responseCode = "200", description = "Stock exchange updated successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request data")
+    @ApiResponse(responseCode = "404", description = "Stock exchange not found")
+    @PreAuthorize("hasRole('USER')")
+    @PutMapping(value = "/{id}")
+    public ResponseEntity<ApiRespond> updateStockExchange(
+            @PathVariable @Positive long id,
+            @Valid @RequestBody StockExchangeUpdateRequest request) {
+
+        StockExchangeDto updatedStockExchange = stockExchangeService.updateStockExchange(id, request);
+
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stock exchange updated successfully",
+                updatedStockExchange
+        ));
     }
 
-    @Operation(summary = "delete a stockExchange from the system", description = "delete a stockExchange from the system")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
+    @Operation(summary = "Delete a stock exchange", description = "Deletes a stock exchange from the system")
+    @ApiResponse(responseCode = "204", description = "Stock exchange deleted successfully")
+    @ApiResponse(responseCode = "404", description = "Stock exchange not found")
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteStockExchange(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteStockExchange(@PathVariable @Positive long id) {
         stockExchangeService.deleteStockExchange(id);
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Add a stock to stockExchange on the system", description = "Add a stock to stockExchange on the system")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
-    @PutMapping("/addStock")
-    public ResponseEntity<ApiRespond> addStockToStockExchange(@RequestParam long stockExchangeId, @RequestParam long stockId) {
-        return ResponseEntity.ok(new ApiRespond(HttpStatus.OK,
-                "Stock Added successfully to StockExchange", stockExchangeService.addStockToStockExchange(stockExchangeId, stockId)));
+    @Operation(summary = "Add stock to stock exchange", description = "Associates a stock with a stock exchange")
+    @ApiResponse(responseCode = "201", description = "Stock added to stock exchange successfully")
+    @ApiResponse(responseCode = "404", description = "Stock exchange or stock not found")
+    @ApiResponse(responseCode = "409", description = "Stock already exists in this stock exchange")
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping(value = "/{stockExchangeId}/stocks/{stockId}")
+    public ResponseEntity<ApiRespond> addStockToStockExchange(
+            @PathVariable @Positive long stockExchangeId,
+            @PathVariable @Positive long stockId) {
+
+        StockListingDto stockListingDto = stockExchangeService.addStockToStockExchange(stockExchangeId, stockId);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiRespond(
+                        HttpStatus.CREATED,
+                        "Stock added successfully to stock exchange",
+                        stockListingDto
+                ));
     }
 
-    @Operation(summary = "Delete a stock From stockExchange on the system", description = "Add a stock to stockExchange From the system")
-    @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("ROLE_USER")
+
+    @Operation(summary = "Remove stock from stock exchange", description = "Removes a stock from a stock exchange")
+    @ApiResponse(responseCode = "204", description = "Stock removed from stock exchange successfully")
+    @ApiResponse(responseCode = "404", description = "Stock exchange or stock not found")
+    @PreAuthorize("hasRole('USER')")
     @DeleteMapping("/{stockExchangeId}/stocks/{stockId}")
     public ResponseEntity<Void> removeStockFromStockExchange(
-            @PathVariable Long stockExchangeId,
-            @PathVariable Long stockId) {
+            @PathVariable @Positive long stockExchangeId,
+            @PathVariable @Positive long stockId) {
 
         stockExchangeService.removeStockFromStockExchange(stockExchangeId, stockId);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 }

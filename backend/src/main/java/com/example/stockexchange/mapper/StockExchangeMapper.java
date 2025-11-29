@@ -22,7 +22,7 @@ public interface StockExchangeMapper {
     List<StockExchangeDto> map(List<StockExchange> stockExchanges);
 
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    void map(StockExchangeUpdateRequest courseRequest, @MappingTarget StockExchange stockExchange);
+    void map(StockExchangeUpdateRequest stockExchangeUpdateRequest, @MappingTarget StockExchange stockExchange);
 
     StockExchange map(StockExchangeUpdateRequest stockExchangeDto);
 }

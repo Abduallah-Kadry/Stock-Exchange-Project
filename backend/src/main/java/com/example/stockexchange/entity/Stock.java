@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.LastModifiedDate;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +20,7 @@ public class Stock {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "stock_id")
-    private long stockId;
+    private Long stockId;
 
     @Column(name = "name")
     private String name;
@@ -27,7 +29,7 @@ public class Stock {
     private String description;
 
     @Column(name = "current_price")
-    private double currentPrice;
+    private BigDecimal currentPrice;
 
     @LastModifiedDate
     @Column(insertable = false)
@@ -39,5 +41,5 @@ public class Stock {
     private List<StockListing> stockListings = new ArrayList<>();
 
     @Version
-    private int version;
+    private Integer version;
 }

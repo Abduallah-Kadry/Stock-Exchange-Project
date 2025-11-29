@@ -1,0 +1,34 @@
+I've created a comprehensive test suite for your StockService with 24 test cases covering various scenarios:
+Test Coverage Overview
+1. getAllStocks (3 tests)
+
+✅ Success case with pagination
+✅ Empty page when no stocks exist
+✅ Descending sort order
+
+2. getAllStockExchangesByStock (3 tests)
+
+✅ Success case with valid stock
+✅ Exception when stock not found
+✅ Empty page when stock has no listings
+
+3. createStock (3 tests)
+
+✅ Success case
+✅ Exception when duplicate name exists
+✅ Creating with different price values
+
+4. updatePrice (4 tests)
+
+✅ Success case
+✅ Exception when stock not found
+✅ Updating to zero price
+✅ Updating with large price value
+
+5. deleteStock (5 tests)
+
+✅ Success case
+✅ Exception when stock not found
+✅ Deleting with multiple affected exchanges
+✅ Deleting with no listings
+✅ Handling duplicate exchanges (distinct behavior)
