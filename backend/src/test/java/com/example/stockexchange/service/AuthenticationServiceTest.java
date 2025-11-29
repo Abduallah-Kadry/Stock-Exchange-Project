@@ -54,19 +54,19 @@ class AuthenticationServiceTest {
 
     @BeforeEach
     void setUp() {
-        // Setup RegisterRequest
+
         registerRequest = new RegisterRequest();
         registerRequest.setFirstName("John");
         registerRequest.setLastName("Doe");
         registerRequest.setEmail("john.doe@example.com");
         registerRequest.setPassword("password123");
 
-        // Setup AuthenticationRequest
+
         authenticationRequest = new AuthenticationRequest();
         authenticationRequest.setEmail("john.doe@example.com");
         authenticationRequest.setPassword("password123");
 
-        // Setup User
+
         user = new User();
         user.setId(1L);
         user.setFirstName("John");

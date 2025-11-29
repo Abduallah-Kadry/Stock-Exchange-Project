@@ -8,27 +8,58 @@
         <version>3.5.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
+
     <groupId>com.example</groupId>
     <artifactId>stock-exchange</artifactId>
     <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
     <name>stock-exchange</name>
-    <description>stock-exchange</description>
-    <url/>
+    <description>Stock Exchange Management System - A RESTFUL API for managing stock exchanges, stocks, and listings with JWT authentication</description>
+    <url>https://github.com/yourusername/stock-exchange</url>
+
     <licenses>
-        <license/>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+        </license>
     </licenses>
+
     <developers>
-        <developer/>
+        <developer>
+            <id>dev1</id>
+            <name>Abdullah Othman</name>
+            <email>abdullah.othmansaleh@gmail.com</email>
+            <organization>Your Organization</organization>
+            <organizationUrl>https://www.yourorganization.com</organizationUrl>
+            <roles>
+                <role>Junior Developer</role>
+            </roles>
+            <timezone>UTC+2</timezone>
+        </developer>
     </developers>
+
     <scm>
-        <connection/>
-        <developerConnection/>
-        <tag/>
-        <url/>
+        <connection>scm:git:git://github.com/yourusername/stock-exchange.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com:yourusername/stock-exchange.git</developerConnection>
+        <url>https://github.com/yourusername/stock-exchange</url>
+        <tag>HEAD</tag>
     </scm>
+
+    <issueManagement>
+        <system>GitHub Issues</system>
+        <url>https://github.com/yourusername/stock-exchange/issues</url>
+    </issueManagement>
+
     <properties>
         <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -104,13 +135,14 @@
             <version>2.8.9</version>
         </dependency>
 
-        <!-- Map Struct -->
+        <!-- MapStruct -->
         <dependency>
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct</artifactId>
             <version>1.6.3</version>
         </dependency>
 
+        <!-- Mockito -->
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-junit-jupiter</artifactId>
@@ -119,8 +151,10 @@
     </dependencies>
 
     <build>
+        <finalName>${project.artifactId}-${project.version}</finalName>
+
         <plugins>
-            <!-- Compiler plugin with Lombok as annotation processor -->
+            <!-- Compiler plugin with Lombok and MapStruct as annotation processors -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
@@ -148,22 +182,46 @@
                 </configuration>
             </plugin>
 
-            <!-- Spring Boot plugin -->
-
+            <!-- Spring Boot Maven plugin -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
             </plugin>
-            <plugin>
 
-                <!-- build the image without having to use docker file (select only the important deps to run the project -->
+            <!-- Jib plugin for containerization -->
+            <plugin>
                 <groupId>com.google.cloud.tools</groupId>
                 <artifactId>jib-maven-plugin</artifactId>
                 <version>3.4.2</version>
                 <configuration>
+                    <from>
+                        <image>eclipse-temurin:17-jre-alpine</image>
+                    </from>
                     <to>
-                        <image>${project.artifactId}</image>
+                        <image>${project.artifactId}:${project.version}</image>
+                        <tags>
+                            <tag>latest</tag>
+                        </tags>
                     </to>
+                    <container>
+                        <jvmFlags>
+                            <jvmFlag>-Xms256m</jvmFlag>
+                            <jvmFlag>-Xmx512m</jvmFlag>
+                        </jvmFlags>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                        <format>OCI</format>
+                        <creationTime>USE_CURRENT_TIMESTAMP</creationTime>
+                    </container>
                 </configuration>
             </plugin>
         </plugins>
