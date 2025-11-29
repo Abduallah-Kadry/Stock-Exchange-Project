@@ -95,3 +95,6 @@ backend/data/*.db
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+data/
+backend/data

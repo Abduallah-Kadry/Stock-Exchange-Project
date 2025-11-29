@@ -34,7 +34,7 @@ public class StockController {
     public ResponseEntity<ApiRespond> getAllStocks(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "stockName") String sortBy,
+            @RequestParam(defaultValue = "name") String sortBy,
             @RequestParam(defaultValue = "asc") String direction) {
 
         Page<StockDto> stocks = stockService.getAllStocks(page, size, sortBy, direction);

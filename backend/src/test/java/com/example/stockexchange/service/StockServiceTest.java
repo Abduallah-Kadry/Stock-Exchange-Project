@@ -125,6 +125,30 @@ class StockServiceTest {
     }
 
     @Test
+    @DisplayName("Should return paginated stocks successfully")
+    void getAllStocksWhenNoSortIsGiven() {
+        // Arrange
+        List<Stock> stocks = List.of(stock);
+        Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 1);
+
+        when(stockRepository.findAll(any(Pageable.class))).thenReturn(stockPage);
+        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+        // Act
+        Page<StockDto> result = stockService.getAllStocks(0, 10, "stockName" ,"asc");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Apple Inc.", result.getContent().get(0).getName());
+
+        verify(stockRepository, times(1)).findAll(any(Pageable.class));
+        verify(stockMapper, times(1)).map(any(Stock.class));
+    }
+
+
+    @Test
     @DisplayName("Should return empty page when no stocks exist")
     void getAllStocks_EmptyPage() {
         // Arrange
