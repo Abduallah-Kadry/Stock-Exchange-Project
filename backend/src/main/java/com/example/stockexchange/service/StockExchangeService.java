@@ -58,14 +58,15 @@ public class StockExchangeService {
         return stockExchangeMapper.map(stockExchange);
     }
 
+    @Transactional
     public StockExchangeDto updateStockExchange(long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
-
-        if (stockExchangeRepository.findById(stockExchangeId).isPresent()) {
-            stockExchangeRepository.save(stockExchangeMapper.map(stockExchangeUpdateRequest));
-        } else {
-            throw new ResourceNotFoundException("There is no Such Stock Exchange with id " + stockExchangeId);
-        }
-        return stockExchangeMapper.map(stockExchangeRepository.findById(stockExchangeId).get());
+        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId));
+        
+        stockExchangeMapper.map(stockExchangeUpdateRequest, stockExchange);
+        StockExchange updatedStockExchange = stockExchangeRepository.save(stockExchange);
+        
+        return stockExchangeMapper.map(updatedStockExchange);
     }
 
     @Transactional

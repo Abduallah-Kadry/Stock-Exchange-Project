@@ -101,13 +101,13 @@ public class StockExchangeController {
     @ApiResponse(responseCode = "404", description = "Stock exchange not found")
     @PreAuthorize("hasRole('USER')")
     @PutMapping(value = "/{id}")
-    public ResponseEntity<ApiRespond> updateStockExchange(
+    public ResponseEntity<ApiRespond<StockExchangeDto>> updateStockExchange(
             @PathVariable @Positive long id,
             @Valid @RequestBody StockExchangeUpdateRequest request) {
 
         StockExchangeDto updatedStockExchange = stockExchangeService.updateStockExchange(id, request);
 
-        return ResponseEntity.ok(new ApiRespond(
+        return ResponseEntity.ok(new ApiRespond<>(
                 HttpStatus.OK,
                 "Stock exchange updated successfully",
                 updatedStockExchange
