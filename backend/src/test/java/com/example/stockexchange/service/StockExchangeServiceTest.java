@@ -2,20 +2,20 @@ package com.example.stockexchange.service;
 
 import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
-import com.example.stockexchange.dto.StockListingDto;
 import com.example.stockexchange.entity.Stock;
 import com.example.stockexchange.entity.StockExchange;
 import com.example.stockexchange.entity.StockListing;
-import com.example.stockexchange.entity.StockListingId;
 import com.example.stockexchange.exception.DuplicateResourceException;
 import com.example.stockexchange.exception.ResourceNotFoundException;
 import com.example.stockexchange.mapper.StockExchangeMapper;
 import com.example.stockexchange.mapper.StockMapper;
-import com.example.stockexchange.repository.StockExchangeRepository;
 import com.example.stockexchange.repository.StockListingRepository;
 import com.example.stockexchange.repository.StockRepository;
+import com.example.stockexchange.request.StockCreationRequest;
+import com.example.stockexchange.request.StockPriceUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -24,6 +24,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,10 +34,8 @@ import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-class StockExchangeServiceTest {
-
-    @Mock
-    private StockExchangeRepository stockExchangeRepository;
+@DisplayName("StockService Tests")
+class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
@@ -45,42 +44,33 @@ class StockExchangeServiceTest {
     private StockListingRepository stockListingRepository;
 
     @Mock
+    private StockMapper stockMapper;
+
+    @Mock
     private StockExchangeMapper stockExchangeMapper;
 
     @Mock
-    private StockMapper stockMapper;
-
-    @InjectMocks
     private StockExchangeService stockExchangeService;
 
-    private StockExchange stockExchange;
-    private StockExchangeDto stockExchangeDto;
+    @InjectMocks
+    private StockService stockService;
+
     private Stock stock;
     private StockDto stockDto;
-    private StockListing stockListing;
+    private StockExchange stockExchange;
+    private StockExchangeDto stockExchangeDto;
+    private StockCreationRequest stockCreationRequest;
+    private StockPriceUpdateRequest stockPriceUpdateRequest;
 
     @BeforeEach
     void setUp() {
-        // Setup StockExchange entity
-        stockExchange = new StockExchange();
-        stockExchange.setStockExchangeId(1L);
-        stockExchange.setName("NYSE");
-        stockExchange.setDescription("New York Stock Exchange");
-        stockExchange.setLiveInMarket(true);
-
-        // Setup StockExchangeDto
-        stockExchangeDto = new StockExchangeDto();
-        stockExchangeDto.setStockExchangeId(1L);
-        stockExchangeDto.setName("NYSE");
-        stockExchangeDto.setDescription("New York Stock Exchange");
-        stockExchangeDto.setLiveInMarket(true);
-
         // Setup Stock entity
         stock = new Stock();
         stock.setStockId(1L);
         stock.setName("Apple Inc.");
         stock.setDescription("Technology company");
         stock.setCurrentPrice(BigDecimal.valueOf(150.00));
+        stock.setStockListings(new ArrayList<>());
 
         // Setup StockDto
         stockDto = new StockDto();
@@ -89,592 +79,451 @@ class StockExchangeServiceTest {
         stockDto.setDescription("Technology company");
         stockDto.setCurrentPrice(BigDecimal.valueOf(150.00));
 
-        // Setup StockListing
-        stockListing = new StockListing(stockExchange, stock);
-    }
-
-    // ==================== deleteStockExchange Tests ====================
-
-    @Test
-    @DisplayName("Should delete stock exchange successfully")
-    void deleteStockExchange_Success() {
-        // Arrange
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        doNothing().when(stockExchangeRepository).delete(any(StockExchange.class));
-
-        // Act
-        stockExchangeService.deleteStockExchange(1L);
-
-        // Assert
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockExchangeRepository, times(1)).delete(stockExchange);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when deleting non-existent stock exchange")
-    void deleteStockExchange_NotFound() {
-        // Arrange
-        when(stockExchangeRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.deleteStockExchange(999L)
-        );
-
-        assertEquals("Stock Exchange not found with id: 999", exception.getMessage());
-
-        verify(stockExchangeRepository, times(1)).findById(999L);
-        verify(stockExchangeRepository, never()).delete(any(StockExchange.class));
-    }
-
-    @Test
-    @DisplayName("Should delete stock exchange and cascade delete listings")
-    void deleteStockExchange_CascadeDelete() {
-        // Arrange
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        doNothing().when(stockExchangeRepository).delete(any(StockExchange.class));
-
-        // Act
-        stockExchangeService.deleteStockExchange(1L);
-
-        // Assert
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockExchangeRepository, times(1)).delete(stockExchange);
-        // Cascade delete is handled by JPA, no explicit listing deletion needed
-    }
-
-    @Test
-    @DisplayName("Should delete stock exchange with null listings")
-    void deleteStockExchange_NullListings() {
-        // Arrange
-        stockExchange.setStockListings(null);
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        doNothing().when(stockExchangeRepository).delete(any(StockExchange.class));
-
-        // Act
-        assertDoesNotThrow(() -> stockExchangeService.deleteStockExchange(1L));
-
-        // Assert
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockExchangeRepository, times(1)).delete(stockExchange);
-    }
-
-    // ==================== getAllStocksByExchange Tests ====================
-
-    @Test
-    @DisplayName("Should return stocks for valid stock exchange")
-    void getAllStocksByExchange_Success() {
-        // Arrange
-        List<Stock> stocks = List.of(stock);
-        Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 1);
-
-        when(stockExchangeRepository.existsById(1L)).thenReturn(true);
-        when(stockListingRepository.findStocksByStockExchangeId(anyLong(), any(Pageable.class)))
-                .thenReturn(stockPage);
-        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
-
-        // Act
-        Page<StockDto> result = stockExchangeService.getAllStocksByExchange(1L, 0, 10, "name");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(1, result.getTotalElements());
-        assertEquals("Apple Inc.", result.getContent().get(0).getName());
-
-        verify(stockExchangeRepository, times(1)).existsById(1L);
-        verify(stockListingRepository, times(1))
-                .findStocksByStockExchangeId(anyLong(), any(Pageable.class));
-        verify(stockMapper, times(1)).map(any(Stock.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock exchange not found")
-    void getAllStocksByExchange_ExchangeNotFound() {
-        // Arrange
-        when(stockExchangeRepository.existsById(999L)).thenReturn(false);
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.getAllStocksByExchange(999L, 0, 10, "name")
-        );
-
-        assertEquals("Stock Exchange not found with id: 999", exception.getMessage());
-
-        verify(stockExchangeRepository, times(1)).existsById(999L);
-        verify(stockListingRepository, never())
-                .findStocksByStockExchangeId(anyLong(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("Should return empty page when exchange has no stocks")
-    void getAllStocksByExchange_NoStocks() {
-        // Arrange
-        Page<Stock> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
-
-        when(stockExchangeRepository.existsById(1L)).thenReturn(true);
-        when(stockListingRepository.findStocksByStockExchangeId(anyLong(), any(Pageable.class)))
-                .thenReturn(emptyPage);
-
-        // Act
-        Page<StockDto> result = stockExchangeService.getAllStocksByExchange(1L, 0, 10, "name");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(0, result.getTotalElements());
-        assertTrue(result.getContent().isEmpty());
-
-        verify(stockExchangeRepository, times(1)).existsById(1L);
-        verify(stockListingRepository, times(1))
-                .findStocksByStockExchangeId(anyLong(), any(Pageable.class));
-    }
-
-    @Test
-    @DisplayName("Should return stocks sorted by specified field")
-    void getAllStocksByExchange_WithSorting() {
-        // Arrange
-        Stock stock2 = new Stock();
-        stock2.setStockId(2L);
-        stock2.setName("Microsoft Corp.");
-
-        StockDto stockDto2 = new StockDto();
-        stockDto2.setStockId(2L);
-        stockDto2.setName("Microsoft Corp.");
-
-        List<Stock> stocks = List.of(stock, stock2);
-        Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 2);
-
-        when(stockExchangeRepository.existsById(1L)).thenReturn(true);
-        when(stockListingRepository.findStocksByStockExchangeId(anyLong(), any(Pageable.class)))
-                .thenReturn(stockPage);
-        when(stockMapper.map(any(Stock.class)))
-                .thenReturn(stockDto)
-                .thenReturn(stockDto2);
-
-        // Act
-        Page<StockDto> result = stockExchangeService.getAllStocksByExchange(1L, 0, 10, "name");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(2, result.getTotalElements());
-        assertEquals(2, result.getContent().size());
-
-        verify(stockExchangeRepository, times(1)).existsById(1L);
-        verify(stockListingRepository, times(1))
-                .findStocksByStockExchangeId(anyLong(), any(Pageable.class));
-        verify(stockMapper, times(2)).map(any(Stock.class));
-    }
-
-    @Test
-    @DisplayName("Should handle pagination correctly")
-    void getAllStocksByExchange_Pagination() {
-        // Arrange
-        List<Stock> stocks = List.of(stock);
-        Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(1, 5), 20);
-
-        when(stockExchangeRepository.existsById(1L)).thenReturn(true);
-        when(stockListingRepository.findStocksByStockExchangeId(anyLong(), any(Pageable.class)))
-                .thenReturn(stockPage);
-        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
-
-        // Act
-        Page<StockDto> result = stockExchangeService.getAllStocksByExchange(1L, 1, 5, "name");
-
-        // Assert
-        assertNotNull(result);
-        assertEquals(20, result.getTotalElements());
-        assertEquals(4, result.getTotalPages());
-        assertEquals(1, result.getNumber());
-        assertEquals(5, result.getSize());
-
-        verify(stockExchangeRepository, times(1)).existsById(1L);
-    }
-
-    // ==================== addStockToStockExchange Tests ====================
-
-    @Test
-    @DisplayName("Should add stock to stock exchange successfully")
-    void addStockToStockExchange_Success() {
-        // Arrange
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
-        when(stockListingRepository.save(any(StockListing.class))).thenReturn(stockListing);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(5L);
-        when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(stockExchangeDto);
-        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
-
-        // Act
-        StockListingDto result = stockExchangeService.addStockToStockExchange(1L, 1L);
-
-        // Assert
-        assertNotNull(result);
-        assertNotNull(result.getStockExchangeDto());
-        assertNotNull(result.getStockDto());
-        assertEquals("NYSE", result.getStockExchangeDto().getName());
-        assertEquals("Apple Inc.", result.getStockDto().getName());
-
-        verify(stockListingRepository, times(1)).existsById(any(StockListingId.class));
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockRepository, times(1)).findById(1L);
-        verify(stockListingRepository, times(1)).save(any(StockListing.class));
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock already listed")
-    void addStockToStockExchange_AlreadyListed() {
-        // Arrange
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(true);
-
-        // Act & Assert
-        DuplicateResourceException exception = assertThrows(
-                DuplicateResourceException.class,
-                () -> stockExchangeService.addStockToStockExchange(1L, 1L)
-        );
-
-        assertEquals("Stock with id 1 is already listed on Stock Exchange with id 1",
-                exception.getMessage());
-
-        verify(stockListingRepository, times(1)).existsById(any(StockListingId.class));
-        verify(stockExchangeRepository, never()).findById(anyLong());
-        verify(stockRepository, never()).findById(anyLong());
-        verify(stockListingRepository, never()).save(any(StockListing.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock exchange not found")
-    void addStockToStockExchange_ExchangeNotFound() {
-        // Arrange
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-        when(stockExchangeRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.addStockToStockExchange(999L, 1L)
-        );
-
-        assertEquals("Stock Exchange not found with id: 999", exception.getMessage());
-
-        verify(stockListingRepository, times(1)).existsById(any(StockListingId.class));
-        verify(stockExchangeRepository, times(1)).findById(999L);
-        verify(stockRepository, never()).findById(anyLong());
-        verify(stockListingRepository, never()).save(any(StockListing.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock not found")
-    void addStockToStockExchange_StockNotFound() {
-        // Arrange
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.addStockToStockExchange(1L, 999L)
-        );
-
-        assertEquals("Stock not found with id: 999", exception.getMessage());
-
-        verify(stockListingRepository, times(1)).existsById(any(StockListingId.class));
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockRepository, times(1)).findById(999L);
-        verify(stockListingRepository, never()).save(any(StockListing.class));
-    }
-
-    @Test
-    @DisplayName("Should update live market status when adding 10th stock")
-    void addStockToStockExchange_UpdateLiveStatusToTrue() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
-        when(stockListingRepository.save(any(StockListing.class))).thenReturn(stockListing);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(10L);
-        when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(stockExchangeDto);
-        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
-
-        // Act
-        StockListingDto result = stockExchangeService.addStockToStockExchange(1L, 1L);
-
-        // Assert
-        assertNotNull(result);
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
-
-    @Test
-    @DisplayName("Should not change live status when adding stock but count still below 10")
-    void addStockToStockExchange_NoLiveStatusChange() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-
-        when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
-        when(stockListingRepository.save(any(StockListing.class))).thenReturn(stockListing);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(5L);
-        when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(stockExchangeDto);
-        when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
-
-        // Act
-        StockListingDto result = stockExchangeService.addStockToStockExchange(1L, 1L);
-
-        // Assert
-        assertNotNull(result);
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
-
-    // ==================== removeStockFromStockExchange Tests ====================
-
-    @Test
-    @DisplayName("Should remove stock from stock exchange successfully")
-    void removeStockFromStockExchange_Success() {
-        // Arrange
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockListingRepository.findById(any(StockListingId.class)))
-                .thenReturn(Optional.of(stockListing));
-        doNothing().when(stockListingRepository).delete(any(StockListing.class));
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(15L);
-
-        // Act
-        stockExchangeService.removeStockFromStockExchange(1L, 1L);
-
-        // Assert
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockListingRepository, times(1)).findById(any(StockListingId.class));
-        verify(stockListingRepository, times(1)).delete(stockListing);
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock exchange not found")
-    void removeStockFromStockExchange_ExchangeNotFound() {
-        // Arrange
-        when(stockExchangeRepository.findById(999L)).thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.removeStockFromStockExchange(999L, 1L)
-        );
-
-        assertEquals("Stock Exchange not found with id: 999", exception.getMessage());
-
-        verify(stockExchangeRepository, times(1)).findById(999L);
-        verify(stockListingRepository, never()).findById(any(StockListingId.class));
-        verify(stockListingRepository, never()).delete(any(StockListing.class));
-    }
-
-    @Test
-    @DisplayName("Should throw exception when stock not listed on exchange")
-    void removeStockFromStockExchange_StockNotListed() {
-        // Arrange
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockListingRepository.findById(any(StockListingId.class)))
-                .thenReturn(Optional.empty());
-
-        // Act & Assert
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> stockExchangeService.removeStockFromStockExchange(1L, 1L)
-        );
-
-        assertEquals("Stock with id 1 is not listed on this Stock Exchange",
-                exception.getMessage());
-
-        verify(stockExchangeRepository, times(1)).findById(1L);
-        verify(stockListingRepository, times(1)).findById(any(StockListingId.class));
-        verify(stockListingRepository, never()).delete(any(StockListing.class));
-    }
-
-    @Test
-    @DisplayName("Should update live status to false when stocks fall below 10")
-    void removeStockFromStockExchange_UpdateLiveStatusToFalse() {
-        // Arrange
+        // Setup StockExchange
+        stockExchange = new StockExchange();
+        stockExchange.setStockExchangeId(1L);
+        stockExchange.setName("NYSE");
         stockExchange.setLiveInMarket(true);
 
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockListingRepository.findById(any(StockListingId.class)))
-                .thenReturn(Optional.of(stockListing));
-        doNothing().when(stockListingRepository).delete(any(StockListing.class));
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(9L);
+        // Setup StockExchangeDto
+        stockExchangeDto = new StockExchangeDto();
+        stockExchangeDto.setStockExchangeId(1L);
+        stockExchangeDto.setName("NYSE");
+        stockExchangeDto.setLiveInMarket(true);
 
-        // Act
-        stockExchangeService.removeStockFromStockExchange(1L, 1L);
+        // Setup requests
+        stockCreationRequest = new StockCreationRequest();
+        stockCreationRequest.setName("Apple Inc.");
+        stockCreationRequest.setDescription("Technology company");
+        stockCreationRequest.setCurrentPrice(BigDecimal.valueOf(150.00));
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-        verify(stockListingRepository, times(1)).delete(stockListing);
+        stockPriceUpdateRequest = new StockPriceUpdateRequest();
+        stockPriceUpdateRequest.setCurrentPrice(BigDecimal.valueOf(160.00));
     }
 
-    @Test
-    @DisplayName("Should not change live status when removing stock but count still >= 10")
-    void removeStockFromStockExchange_NoLiveStatusChange() {
-        // Arrange
-        stockExchange.setLiveInMarket(true);
+    @Nested
+    @DisplayName("getAllStocks Tests")
+    class GetAllStocksTests {
 
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockListingRepository.findById(any(StockListingId.class)))
-                .thenReturn(Optional.of(stockListing));
-        doNothing().when(stockListingRepository).delete(any(StockListing.class));
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(10L);
+        @Test
+        @DisplayName("Should return paginated stocks with ascending sort")
+        void shouldReturnPaginatedStocksSuccessfully() {
+            // Arrange
+            List<Stock> stocks = List.of(stock);
+            Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 1);
 
-        // Act
-        stockExchangeService.removeStockFromStockExchange(1L, 1L);
+            when(stockRepository.findAll(any(Pageable.class))).thenReturn(stockPage);
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
 
-        // Assert
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
+            // Act
+            Page<StockDto> result = stockService.getAllStocks(0, 10, "name", "asc");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+            assertEquals(1, result.getContent().size());
+            assertEquals("Apple Inc.", result.getContent().get(0).getName());
+
+            verify(stockRepository, times(1)).findAll(any(Pageable.class));
+            verify(stockMapper, times(1)).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should return paginated stocks when no specific sort field is given")
+        void shouldReturnPaginatedStocksWithDefaultSort() {
+            // Arrange
+            List<Stock> stocks = List.of(stock);
+            Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 1);
+
+            when(stockRepository.findAll(any(Pageable.class))).thenReturn(stockPage);
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+            // Act
+            Page<StockDto> result = stockService.getAllStocks(0, 10, "stockName", "asc");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+            assertEquals(1, result.getContent().size());
+            assertEquals("Apple Inc.", result.getContent().get(0).getName());
+
+            verify(stockRepository, times(1)).findAll(any(Pageable.class));
+            verify(stockMapper, times(1)).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should return empty page when no stocks exist")
+        void shouldReturnEmptyPageWhenNoStocks() {
+            // Arrange
+            Page<Stock> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+            when(stockRepository.findAll(any(Pageable.class))).thenReturn(emptyPage);
+
+            // Act
+            Page<StockDto> result = stockService.getAllStocks(0, 10, "name", "asc");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(0, result.getTotalElements());
+            assertTrue(result.getContent().isEmpty());
+
+            verify(stockRepository, times(1)).findAll(any(Pageable.class));
+            verify(stockMapper, never()).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should sort stocks in descending order")
+        void shouldSortStocksInDescendingOrder() {
+            // Arrange
+            List<Stock> stocks = List.of(stock);
+            Page<Stock> stockPage = new PageImpl<>(stocks, PageRequest.of(0, 10), 1);
+
+            when(stockRepository.findAll(any(Pageable.class))).thenReturn(stockPage);
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+            // Act
+            Page<StockDto> result = stockService.getAllStocks(0, 10, "currentPrice", "desc");
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+
+            verify(stockRepository, times(1)).findAll(any(Pageable.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should handle removing last stock from exchange")
-    void removeStockFromStockExchange_LastStock() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
+    @Nested
+    @DisplayName("getAllStockExchangesByStock Tests")
+    class GetAllStockExchangesByStockTests {
 
-        when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-        when(stockListingRepository.findById(any(StockListingId.class)))
-                .thenReturn(Optional.of(stockListing));
-        doNothing().when(stockListingRepository).delete(any(StockListing.class));
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(0L);
+        @Test
+        @DisplayName("Should return stock exchanges for valid stock")
+        void shouldReturnStockExchangesForValidStock() {
+            // Arrange
+            List<StockExchange> exchanges = List.of(stockExchange);
+            Page<StockExchange> exchangePage = new PageImpl<>(exchanges, PageRequest.of(0, 10), 1);
 
-        // Act
-        stockExchangeService.removeStockFromStockExchange(1L, 1L);
+            when(stockRepository.existsById(1L)).thenReturn(true);
+            when(stockListingRepository.findStockExchangesByStockId(anyLong(), any(Pageable.class)))
+                    .thenReturn(exchangePage);
+            when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(stockExchangeDto);
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).delete(stockListing);
+            // Act
+            Page<StockExchangeDto> result = stockService.getAllStockExchangesByStock(1L, 0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(1, result.getTotalElements());
+            assertEquals("NYSE", result.getContent().get(0).getName());
+
+            verify(stockRepository, times(1)).existsById(1L);
+            verify(stockListingRepository, times(1))
+                    .findStockExchangesByStockId(anyLong(), any(Pageable.class));
+            verify(stockExchangeMapper, times(1)).map(any(StockExchange.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when stock not found")
+        void shouldThrowExceptionWhenStockNotFound() {
+            // Arrange
+            when(stockRepository.existsById(999L)).thenReturn(false);
+
+            // Act & Assert
+            ResourceNotFoundException exception = assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> stockService.getAllStockExchangesByStock(999L, 0, 10)
+            );
+
+            assertEquals("Stock not found with id: 999", exception.getMessage());
+
+            verify(stockRepository, times(1)).existsById(999L);
+            verify(stockListingRepository, never())
+                    .findStockExchangesByStockId(anyLong(), any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("Should return empty page when stock has no listings")
+        void shouldReturnEmptyPageWhenNoListings() {
+            // Arrange
+            Page<StockExchange> emptyPage = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+
+            when(stockRepository.existsById(1L)).thenReturn(true);
+            when(stockListingRepository.findStockExchangesByStockId(anyLong(), any(Pageable.class)))
+                    .thenReturn(emptyPage);
+
+            // Act
+            Page<StockExchangeDto> result = stockService.getAllStockExchangesByStock(1L, 0, 10);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(0, result.getTotalElements());
+            assertTrue(result.getContent().isEmpty());
+
+            verify(stockRepository, times(1)).existsById(1L);
+            verify(stockListingRepository, times(1))
+                    .findStockExchangesByStockId(anyLong(), any(Pageable.class));
+        }
     }
 
-    // ==================== updateLiveMarketStatus Tests ====================
+    @Nested
+    @DisplayName("createStock Tests")
+    class CreateStockTests {
 
-    @Test
-    @DisplayName("Should set live status to true when stocks >= 10")
-    void updateLiveMarketStatus_SetToTrue() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(10L);
+        @Test
+        @DisplayName("Should create stock successfully")
+        void shouldCreateStockSuccessfully() {
+            // Arrange
+            when(stockRepository.existsByName("Apple Inc.")).thenReturn(false);
+            when(stockMapper.map(any(StockCreationRequest.class))).thenReturn(stock);
+            when(stockRepository.save(any(Stock.class))).thenReturn(stock);
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+            // Act
+            StockDto result = stockService.createStock(stockCreationRequest);
 
-        // Assert
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
+            // Assert
+            assertNotNull(result);
+            assertEquals("Apple Inc.", result.getName());
+            assertEquals(BigDecimal.valueOf(150.00), result.getCurrentPrice());
+
+            verify(stockRepository, times(1)).existsByName("Apple Inc.");
+            verify(stockRepository, times(1)).save(any(Stock.class));
+            verify(stockMapper, times(1)).map(any(StockCreationRequest.class));
+            verify(stockMapper, times(1)).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when stock name already exists")
+        void shouldThrowExceptionWhenDuplicateName() {
+            // Arrange
+            when(stockRepository.existsByName("Apple Inc.")).thenReturn(true);
+
+            // Act & Assert
+            DuplicateResourceException exception = assertThrows(
+                    DuplicateResourceException.class,
+                    () -> stockService.createStock(stockCreationRequest)
+            );
+
+            assertEquals("Stock with name Apple Inc. already exists", exception.getMessage());
+
+            verify(stockRepository, times(1)).existsByName("Apple Inc.");
+            verify(stockRepository, never()).save(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should create stock with valid price")
+        void shouldCreateStockWithValidPrice() {
+            // Arrange
+            stockCreationRequest.setCurrentPrice(BigDecimal.valueOf(200.00));
+            stock.setCurrentPrice(BigDecimal.valueOf(200.00));
+            stockDto.setCurrentPrice(BigDecimal.valueOf(200.00));
+
+            when(stockRepository.existsByName("Apple Inc.")).thenReturn(false);
+            when(stockMapper.map(any(StockCreationRequest.class))).thenReturn(stock);
+            when(stockRepository.save(any(Stock.class))).thenReturn(stock);
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+            // Act
+            StockDto result = stockService.createStock(stockCreationRequest);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(BigDecimal.valueOf(200.00), result.getCurrentPrice());
+
+            verify(stockRepository, times(1)).save(any(Stock.class));
+        }
     }
 
-    @Test
-    @DisplayName("Should set live status to false when stocks < 10")
-    void updateLiveMarketStatus_SetToFalse() {
-        // Arrange
-        stockExchange.setLiveInMarket(true);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(9L);
+    @Nested
+    @DisplayName("updatePrice Tests")
+    class UpdatePriceTests {
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+        @Test
+        @DisplayName("Should update stock price successfully")
+        void shouldUpdatePriceSuccessfully() {
+            // Arrange
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
+            // Act
+            StockDto result = stockService.updatePrice(1L, stockPriceUpdateRequest);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(BigDecimal.valueOf(160.00), stock.getCurrentPrice());
+
+            verify(stockRepository, times(1)).findById(1L);
+            verify(stockMapper, times(1)).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should throw exception when updating non-existent stock")
+        void shouldThrowExceptionWhenStockNotFound() {
+            // Arrange
+            when(stockRepository.findById(999L)).thenReturn(Optional.empty());
+
+            // Act & Assert
+            ResourceNotFoundException exception = assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> stockService.updatePrice(999L, stockPriceUpdateRequest)
+            );
+
+            assertEquals("Stock not found with id: 999", exception.getMessage());
+
+            verify(stockRepository, times(1)).findById(999L);
+            verify(stockMapper, never()).map(any(Stock.class));
+        }
+
+        @Test
+        @DisplayName("Should update price to zero")
+        void shouldUpdatePriceToZero() {
+            // Arrange
+            stockPriceUpdateRequest.setCurrentPrice(BigDecimal.ZERO);
+
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+            // Act
+            StockDto result = stockService.updatePrice(1L, stockPriceUpdateRequest);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(BigDecimal.ZERO, stock.getCurrentPrice());
+
+            verify(stockRepository, times(1)).findById(1L);
+        }
+
+        @Test
+        @DisplayName("Should update price with large value")
+        void shouldUpdatePriceWithLargeValue() {
+            // Arrange
+            stockPriceUpdateRequest.setCurrentPrice(BigDecimal.valueOf(999999.99));
+
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            when(stockMapper.map(any(Stock.class))).thenReturn(stockDto);
+
+            // Act
+            StockDto result = stockService.updatePrice(1L, stockPriceUpdateRequest);
+
+            // Assert
+            assertNotNull(result);
+            assertEquals(BigDecimal.valueOf(999999.99), stock.getCurrentPrice());
+
+            verify(stockRepository, times(1)).findById(1L);
+        }
     }
 
-    @Test
-    @DisplayName("Should not change status when already correct (live with 10+ stocks)")
-    void updateLiveMarketStatus_NoChangeWhenAlreadyLive() {
-        // Arrange
-        stockExchange.setLiveInMarket(true);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(15L);
+    @Nested
+    @DisplayName("deleteStock Tests")
+    class DeleteStockTests {
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+        @Test
+        @DisplayName("Should delete stock successfully")
+        void shouldDeleteStockSuccessfully() {
+            // Arrange
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            doNothing().when(stockRepository).delete(any(Stock.class));
 
-        // Assert
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
+            // Act
+            stockService.deleteStock(1L);
 
-    @Test
-    @DisplayName("Should not change status when already correct (not live with < 10 stocks)")
-    void updateLiveMarketStatus_NoChangeWhenAlreadyNotLive() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(5L);
+            // Assert
+            verify(stockRepository, times(1)).findById(1L);
+            verify(stockRepository, times(1)).delete(stock);
+        }
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+        @Test
+        @DisplayName("Should throw exception when deleting non-existent stock")
+        void shouldThrowExceptionWhenStockNotFound() {
+            // Arrange
+            when(stockRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
+            // Act & Assert
+            ResourceNotFoundException exception = assertThrows(
+                    ResourceNotFoundException.class,
+                    () -> stockService.deleteStock(999L)
+            );
 
-    @Test
-    @DisplayName("Should handle edge case with exactly 10 stocks")
-    void updateLiveMarketStatus_ExactlyTenStocks() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(10L);
+            assertEquals("Stock not found with id: 999", exception.getMessage());
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+            verify(stockRepository, times(1)).findById(999L);
+            verify(stockRepository, never()).delete(any(Stock.class));
+        }
 
-        // Assert
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
+        @Test
+        @DisplayName("Should delete stock and update affected exchanges")
+        void shouldDeleteStockAndUpdateAffectedExchanges() {
+            // Arrange
+            StockListing listing1 = new StockListing();
+            listing1.setStockExchange(stockExchange);
+            listing1.setStock(stock);
 
-    @Test
-    @DisplayName("Should handle edge case with zero stocks")
-    void updateLiveMarketStatus_ZeroStocks() {
-        // Arrange
-        stockExchange.setLiveInMarket(true);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(0L);
+            StockExchange stockExchange2 = new StockExchange();
+            stockExchange2.setStockExchangeId(2L);
+            stockExchange2.setName("NASDAQ");
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+            StockListing listing2 = new StockListing();
+            listing2.setStockExchange(stockExchange2);
+            listing2.setStock(stock);
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
+            stock.setStockListings(List.of(listing1, listing2));
 
-    @Test
-    @DisplayName("Should handle large number of stocks")
-    void updateLiveMarketStatus_LargeNumberOfStocks() {
-        // Arrange
-        stockExchange.setLiveInMarket(false);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(1000L);
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            doNothing().when(stockRepository).delete(any(Stock.class));
+            doNothing().when(stockExchangeService).updateLiveMarketStatus(any(StockExchange.class));
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+            // Act
+            stockService.deleteStock(1L);
 
-        // Assert
-        assertTrue(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
-    }
+            // Assert
+            verify(stockRepository, times(1)).findById(1L);
+            verify(stockRepository, times(1)).delete(stock);
+            verify(stockExchangeService, times(2)).updateLiveMarketStatus(any(StockExchange.class));
+        }
 
-    @Test
-    @DisplayName("Should handle transition from live to not live")
-    void updateLiveMarketStatus_TransitionFromLiveToNotLive() {
-        // Arrange
-        stockExchange.setLiveInMarket(true);
-        when(stockListingRepository.countByStockExchangeId(1L)).thenReturn(3L);
+        @Test
+        @DisplayName("Should delete stock with no listings")
+        void shouldDeleteStockWithNoListings() {
+            // Arrange
+            stock.setStockListings(List.of());
 
-        // Act
-        stockExchangeService.updateLiveMarketStatus(stockExchange);
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            doNothing().when(stockRepository).delete(any(Stock.class));
 
-        // Assert
-        assertFalse(stockExchange.isLiveInMarket());
-        verify(stockListingRepository, times(1)).countByStockExchangeId(1L);
+            // Act
+            stockService.deleteStock(1L);
+
+            // Assert
+            verify(stockRepository, times(1)).findById(1L);
+            verify(stockRepository, times(1)).delete(stock);
+            verify(stockExchangeService, never()).updateLiveMarketStatus(any(StockExchange.class));
+        }
+
+        @Test
+        @DisplayName("Should delete stock and handle duplicate exchanges")
+        void shouldDeleteStockAndHandleDuplicateExchanges() {
+            // Arrange
+            StockListing listing1 = new StockListing();
+            listing1.setStockExchange(stockExchange);
+            listing1.setStock(stock);
+
+            StockListing listing2 = new StockListing();
+            listing2.setStockExchange(stockExchange); // Same exchange
+            listing2.setStock(stock);
+
+            stock.setStockListings(List.of(listing1, listing2));
+
+            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
+            doNothing().when(stockRepository).delete(any(Stock.class));
+            doNothing().when(stockExchangeService).updateLiveMarketStatus(any(StockExchange.class));
+
+            // Act
+            stockService.deleteStock(1L);
+
+            // Assert
+            verify(stockRepository, times(1)).findById(1L);
+            verify(stockRepository, times(1)).delete(stock);
+            // Should only update once due to distinct()
+            verify(stockExchangeService, times(1)).updateLiveMarketStatus(any(StockExchange.class));
+        }
     }
 }

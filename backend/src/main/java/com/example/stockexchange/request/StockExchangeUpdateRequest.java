@@ -12,10 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StockExchangeUpdateRequest {
 
-    @NotNull(message = "stockExchangeId is required")
-    @Positive(message = "stockExchangeId must be positive")
-    private Long stockExchangeId;
-
     @Size(min = 3, max = 30, message = "Name must be at least 3 characters long")
     private String name;
 
