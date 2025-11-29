@@ -36,7 +36,7 @@ public class AuthenticationController {
         this.jwtExpirationSeconds = jwtExpirationSeconds;
     }
 
-    @Operation(summary = "Register a Student", description = "register a new Student")
+    @Operation(summary = "Register a User", description = "register a new User")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/register")
     public ResponseEntity<ApiRespond> register(@Valid @RequestBody RegisterRequest registerRequest) throws Exception {
@@ -46,7 +46,7 @@ public class AuthenticationController {
                         null));
     }
 
-    @Operation(summary = "Login a User", description = "Submit email & password to authenticate a student")
+    @Operation(summary = "Login a User", description = "Submit email & password to authenticate a User")
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/login")
     public ResponseEntity<ApiRespond> login(@Valid @RequestBody AuthenticationRequest authenticationRequest) throws AuthenticationException {

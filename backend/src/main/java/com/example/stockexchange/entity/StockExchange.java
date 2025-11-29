@@ -35,5 +35,5 @@ public class StockExchange {
     private List<StockListing> stockListings = new ArrayList<>();
 
     @Version
-    private Integer version;
+    private int version;
 }

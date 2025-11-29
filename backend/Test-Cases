@@ -32,3 +32,24 @@ Test Coverage Overview
 ✅ Deleting with multiple affected exchanges
 ✅ Deleting with no listings
 ✅ Handling duplicate exchanges (distinct behavior)
+
+📋 Test Methods Included (31 tests)
+1. deleteStockExchange - 4 tests
+
+Success, Not Found, Cascade Delete, Null Listings
+
+2. getAllStocksByExchange - 5 tests
+
+Success, Exchange Not Found, No Stocks, With Sorting, Pagination
+
+3. addStockToStockExchange - 6 tests
+
+Success, Already Listed, Exchange Not Found, Stock Not Found, Update Live Status to True, No Live Status Change
+
+4. removeStockFromStockExchange - 6 tests
+
+Success, Exchange Not Found, Stock Not Listed, Update Live Status to False, No Live Status Change, Last Stock
+
+5. updateLiveMarketStatus - 8 tests
+
+Set to True, Set to False, No Change When Already Live, No Change When Already Not Live, Exactly 10 Stocks, Zero Stocks, Large Number of Stocks, Transition from Live to Not Live
