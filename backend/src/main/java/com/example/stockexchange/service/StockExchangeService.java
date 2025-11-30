@@ -48,6 +48,12 @@ public class StockExchangeService {
         return stockExchangePage.map(stockExchangeMapper::map);
     }
 
+    public StockExchangeDto getStockExchangeById(Long id) {
+        return stockExchangeRepository.findById(id)
+                .map(stockExchangeMapper::map)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id: " + id));
+    }
+
     private Long getNumberOfStocks(long stockExchangeId) {
         return stockListingRepository.countByStockExchangeId(stockExchangeId);
     }
@@ -84,7 +90,9 @@ public class StockExchangeService {
             throw new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId);
         }
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).ascending());
+        // Map the sort field to use the correct entity field name
+        String sortField = "name".equals(sortBy) ? "stock.name" : sortBy;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortField).ascending());
         Page<Stock> stockPage = stockListingRepository.findStocksByStockExchangeId(stockExchangeId, pageable);
         return stockPage.map(stockMapper::map);
     }

@@ -1,10 +1,11 @@
 "use client"
 
 import {useEffect, useState} from "react"
+import {useRouter} from "next/navigation"
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {Button} from "@/components/ui/button"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {Circle, Pencil, Trash2} from "lucide-react"
+import {Circle, Pencil, Trash2, Eye} from "lucide-react"
 import {fetchStockExchanges, deleteStockExchange} from "@/lib/api"
 import {StockExchange} from "@/types/Stock"
 import {CreateStockExchangeModal} from "@/components/createStockExchangeModal"
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/alert-dialog"
 
 export function StockExchangeTable() {
+	const router = useRouter();
 	const [exchanges, setExchanges] = useState<StockExchange[]>([])
 	const [currentPage, setCurrentPage] = useState(0)
 	const [totalPages, setTotalPages] = useState(0)
@@ -106,7 +108,7 @@ export function StockExchangeTable() {
 							<TableHead className="font-semibold">Name</TableHead>
 							<TableHead className="font-semibold">Description</TableHead>
 							<TableHead className="font-semibold text-center">Status</TableHead>
-							<TableHead className="w-24"></TableHead>
+							<TableHead className="w-40">Actions</TableHead>
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -139,7 +141,18 @@ export function StockExchangeTable() {
 										</div>
 									</TableCell>
 									<TableCell>
-										<div className="flex justify-end space-x-2">
+										<div className="flex justify-end space-x-1">
+											<Button
+												variant="ghost"
+												size="icon"
+												title="View details"
+												onClick={(e) => {
+													e.stopPropagation();
+													router.push(`/dashboard/stock-exchanges/${exchange.stockExchangeId}`);
+												}}
+											>
+												<Eye className="h-4 w-4 text-blue-500" />
+											</Button>
 											<UpdateStockExchangeModal
 												exchange={exchange}
 												onExchangeUpdated={loadExchanges}

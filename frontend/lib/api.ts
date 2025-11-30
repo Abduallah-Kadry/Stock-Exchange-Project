@@ -7,23 +7,42 @@ import {StockExchange} from "@/types/Stock";
 const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 // Helper function for making authenticated requests
-export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-	const response = await fetch(`${API_BASE_URL}${url}`, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			...options.headers,
-		},
-		credentials: 'include', // This is important for sending/receiving cookies
-	});
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  // Detect server vs client
+  const isServer = typeof window === 'undefined';
 
-	if (response.status === 401) {
-		// You might want to redirect to login or refresh token here
-		window.location.href = '/login';
-		throw new Error('Unauthorized');
-	}
+  // When running on the server, forward incoming cookies to the backend
+  let cookieHeader = '';
+  if (isServer) {
+    try {
+      const { cookies } = await import('next/headers');
+      const store = await cookies();
+      const all = store.getAll();
+      if (all.length > 0) {
+        cookieHeader = all.map((c) => `${c.name}=${c.value}`).join('; ');
+      }
+    } catch {
+      // no-op: next/headers not available in this context
+    }
+  }
 
-	return response;
+  const response = await fetch(`${API_BASE_URL}${url}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+
+  // Only redirect if we're in the browser
+  if (!isServer && response.status === 401) {
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  return response;
 };
 
 export const registerUser = async (data: RegisterRequest): Promise<ResponseMessage> => {
@@ -290,3 +309,88 @@ export async function updateStock(id: string, stock: UpdateStockRequest): Promis
 
 	return responseData.data;
 }
+
+export const fetchStock = async (id: string): Promise<Stock> => {
+  try {
+    const response = await fetchWithAuth(`/stock/${id}`);
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new Error('Unauthorized');
+      }
+      throw new Error('Failed to fetch stock details');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching stock:', error);
+    throw error;
+  }
+};
+
+export interface StockExchangeDetails extends StockExchange {
+  // Add any additional fields that might be returned by the API
+}
+
+export const fetchStockExchange = async (id: number): Promise<StockExchangeDetails> => {
+  try {
+    console.log(`Attempting to fetch stock exchange with ID: ${id}`);
+    console.log(`API URL: ${API_BASE_URL}/stockExchange/${id}`);
+
+    const response = await fetchWithAuth(`/stockExchange/${id}`);
+
+    console.log('Response status:', response.status);
+    console.log('Response ok:', response.ok);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response body:', errorText);
+
+      if (response.status === 401) {
+        throw new Error('Unauthorized');
+      }
+
+      if (response.status === 404) {
+        throw new Error('Stock exchange not found');
+      }
+
+      throw new Error(`Failed to fetch stock exchange: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    console.log('Received data structure:', Object.keys(data));
+
+    // Check if the data is wrapped in a 'data' property
+    if (data.data) {
+      console.log('Found data in data.data property');
+      return data.data;
+    }
+
+    // Otherwise return the data directly
+    console.log('Returning data directly');
+    return data;
+  } catch (error) {
+    console.error('Error in fetchStockExchange:', error);
+    throw error;
+  }
+};
+
+export const fetchStocksInExchange = async (
+  exchangeId: number, 
+  page: number = 0, 
+  size: number = 10,
+  sortBy: string = 'name'
+): Promise<PaginatedResponse<Stock>> => {
+  try {
+    const response = await fetchWithAuth(
+      `/stockExchange/stock-exchanges/${exchangeId}/stocks?page=${page}&size=${size}&sortBy=${sortBy}`
+    );
+    if (!response.ok) {
+      throw new Error('Failed to fetch stocks in exchange');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching stocks in exchange:', error);
+    throw error;
+  }
+};

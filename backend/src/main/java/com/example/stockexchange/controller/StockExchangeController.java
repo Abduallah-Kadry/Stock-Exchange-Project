@@ -46,6 +46,21 @@ public class StockExchangeController {
         ));
     }
 
+    @Operation(summary = "Get Stock Exchange by ID", description = "Retrieves a specific Stock Exchange by its ID")
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiRespond> getStockExchangeById(
+            @PathVariable @Positive(message = "ID must be a positive number") Long id) {
+        
+        StockExchangeDto stockExchange = stockExchangeService.getStockExchangeById(id);
+        
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stock Exchange retrieved successfully",
+                stockExchange
+        ));
+    }
+
     @Operation(summary = "Get all live Stock Exchanges", description = "Retrieves all Stock Exchanges that are currently live in the market")
     @PreAuthorize("hasRole('USER')")
     @GetMapping("/live")
@@ -69,7 +84,7 @@ public class StockExchangeController {
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "stockName") String sortBy) {
+            @RequestParam(defaultValue = "name") String sortBy) {
 
         Page<StockDto> stocks = stockExchangeService.getAllStocksByExchange(id, page, size, sortBy);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks In StockExchange", stocks));

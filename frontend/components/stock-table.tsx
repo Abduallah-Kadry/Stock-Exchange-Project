@@ -8,7 +8,8 @@ import {fetchStocks, deleteStock} from "@/lib/api"
 import {Stock} from "@/types/Stock"
 import {CreateStockModal} from "@/components/createStockModal"
 import {UpdateStockModal} from "@/components/updateStockModal"
-import {Pencil, Trash2} from "lucide-react"
+import {Pencil, Trash2, Eye} from "lucide-react"
+import {useRouter} from "next/navigation"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,6 +23,7 @@ import {
 import {toast} from "react-hot-toast";
 
 export function StockTable() {
+	const router = useRouter()
 	const [stocks, setStocks] = useState<Stock[]>([])
 	const [currentPage, setCurrentPage] = useState(0)
 	const [totalPages, setTotalPages] = useState(0)
@@ -176,6 +178,17 @@ export function StockTable() {
 									</TableCell>
 									<TableCell className="text-right">
 										<div className="flex justify-end space-x-2">
+											<Button
+												variant="ghost"
+												size="icon"
+												title="View details"
+												onClick={(e) => {
+													e.stopPropagation()
+													router.push(`/dashboard/stocks/${stock.stockId}`)
+												}}
+											>
+												<Eye className="h-4 w-4 text-blue-500" />
+											</Button>
 											<UpdateStockModal
 												stock={stock}
 												onStockUpdated={loadStocks}
