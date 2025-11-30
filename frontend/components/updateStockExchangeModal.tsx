@@ -22,9 +22,10 @@ import { toast } from 'react-hot-toast';
 interface UpdateStockExchangeModalProps {
   exchange: StockExchange;
   onExchangeUpdated: () => void;
+  children: React.ReactNode;
 }
 
-export function UpdateStockExchangeModal({ exchange, onExchangeUpdated }: UpdateStockExchangeModalProps) {
+export function UpdateStockExchangeModal({ exchange, onExchangeUpdated, children }: UpdateStockExchangeModalProps) {
   const [open, setOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -33,6 +34,7 @@ export function UpdateStockExchangeModal({ exchange, onExchangeUpdated }: Update
     description: exchange.description || '',
     liveInMarket: exchange.liveInMarket || false
   });
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -87,9 +89,7 @@ export function UpdateStockExchangeModal({ exchange, onExchangeUpdated }: Update
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          Edit
-        </Button>
+        {children}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px]">
         <form onSubmit={handleSubmit}>

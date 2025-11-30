@@ -135,6 +135,21 @@ export async function createStock(stock: CreateStockRequest): Promise<Stock> {
 	return responseData.data;
 }
 
+export async function deleteStock(stockId: string): Promise<void> {
+  try {
+    const response = await fetchWithAuth(`/stock/${stockId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete stock');
+    }
+  } catch (error) {
+    console.error('Error deleting stock:', error);
+    throw error;
+  }
+}
+
 export async function fetchStockExchanges(page: number = 0, size: number = 5): Promise<PaginatedResponse<StockExchange>> {
 	try {
 		const response = await fetchWithAuth(`/stockExchange?page=${page}&size=${size}`);
@@ -156,13 +171,15 @@ export interface UpdateStockExchangeRequest {
 }
 
 export async function updateStockExchange(id: string, exchange: UpdateStockExchangeRequest): Promise<StockExchange> {
-	console.log(id)
+
 	console.log(exchange)
   const response = await fetchWithAuth(`/stockExchange/${id}`, {
     method: 'PUT',
     body: JSON.stringify(exchange),
   });
+
   const responseData = await response.json();
+	console.log(responseData)
 
   if (!response.ok) {
     if (response.status === 400 && responseData.errors) {

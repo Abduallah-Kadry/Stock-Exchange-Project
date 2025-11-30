@@ -16,6 +16,6 @@ public class StockExchangeCreationRequest {
     private String name;
 
     @NotEmpty(message = "description is mandatory")
-    @Size(min = 3, max = 30, message = "description must be at least 3 characters long")
+    @Size(min = 3, max = 255, message = "description must be at least 3 characters long")
     private String description;
 }

@@ -4,11 +4,22 @@ import {useEffect, useState} from "react"
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {Button} from "@/components/ui/button"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {fetchStocks} from "@/lib/api"
+import {fetchStocks, deleteStock} from "@/lib/api"
 import {Stock} from "@/types/Stock"
 import {CreateStockModal} from "@/components/createStockModal"
 import {UpdateStockModal} from "@/components/updateStockModal"
-import {Pencil} from "lucide-react"
+import {Pencil, Trash2} from "lucide-react"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {toast} from "react-hot-toast";
 
 export function StockTable() {
 	const [stocks, setStocks] = useState<Stock[]>([])
@@ -16,7 +27,10 @@ export function StockTable() {
 	const [totalPages, setTotalPages] = useState(0)
 	const [totalElements, setTotalElements] = useState(0)
 	const [isLoading, setIsLoading] = useState(true)
-	const [pageSize, setPageSize] = useState(5)
+	const [pageSize, setPageSize] = useState(20)
+	const [stockToDelete, setStockToDelete] = useState<Stock | null>(null)
+	const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+	const [isDeleting, setIsDeleting] = useState(false)
 
 	const loadStocks = async () => {
 		setIsLoading(true)
@@ -73,6 +87,28 @@ export function StockTable() {
 	const handleStockCreated = () => {
 		// Refresh the table after creating a stock
 		loadStocks()
+	}
+
+	const handleDeleteClick = (stock: Stock) => {
+		setStockToDelete(stock)
+		setIsDeleteDialogOpen(true)
+	}
+
+	const handleConfirmDelete = async () => {
+		if (!stockToDelete) return
+		
+		setIsDeleting(true)
+		try {
+			await deleteStock(stockToDelete.stockId)
+			toast.success('Stock deleted successfully')
+			loadStocks() // Refresh the table
+			setIsDeleteDialogOpen(false)
+		} catch (error) {
+			console.error('Error deleting stock:', error)
+			toast.error('Failed to delete stock')
+		} finally {
+			setIsDeleting(false)
+		}
 	}
 
 	return (
@@ -143,7 +179,27 @@ export function StockTable() {
 											<UpdateStockModal
 												stock={stock}
 												onStockUpdated={loadStocks}
-											/>
+											>
+												<Button
+													variant="ghost"
+													size="icon"
+													title="Edit stock"
+												>
+													<Pencil className="h-4 w-4" />
+												</Button>
+											</UpdateStockModal>
+											<Button
+												variant="ghost"
+												size="icon"
+												onClick={(e) => {
+													e.stopPropagation()
+													handleDeleteClick(stock)
+												}}
+												title="Delete stock"
+												className="hover:bg-red-100"
+											>
+												<Trash2 className="h-4 w-4 text-red-500" />
+											</Button>
 										</div>
 									</TableCell>
 
@@ -158,63 +214,81 @@ export function StockTable() {
 				</Table>
 			</div>
 
-			<div className="flex items-center justify-between px-2">
-				<div className="flex items-center gap-4">
-					<div className="text-sm text-muted-foreground">
+			<div className="flex items-center justify-between px-6 py-4 border-t">
+				<div className="flex items-center space-x-2">
+					<p className="text-sm text-muted-foreground">
 						{stocks.length > 0 && totalElements > 0 ? (
-							<span>
-                Showing {getRowNumber(0)} to {Math.min(getRowNumber(stocks.length - 1), totalElements)} of {totalElements} entries
-              </span>
+							<>
+								Showing <span className="font-medium">{(currentPage * pageSize) + 1}</span> to{' '}
+								<span className="font-medium">
+									{Math.min((currentPage + 1) * pageSize, totalElements)}
+								</span>{' '}
+								of <span className="font-medium">{totalElements}</span> stocks
+							</>
 						) : (
-							<span>No entries</span>
+							'No stocks found'
 						)}
-					</div>
-
-					<div className="flex items-center gap-2">
-						<span className="text-sm text-muted-foreground">Rows per page:</span>
-						<Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
-							<SelectTrigger className="h-8 w-[70px]">
-								<SelectValue/>
-							</SelectTrigger>
-							<SelectContent>
-								<SelectItem value="5">5</SelectItem>
-								<SelectItem value="10">10</SelectItem>
-								<SelectItem value="20">20</SelectItem>
-								<SelectItem value="50">50</SelectItem>
-							</SelectContent>
-						</Select>
-					</div>
+					</p>
 				</div>
 
 				<div className="flex items-center space-x-2">
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+						onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
 						disabled={currentPage === 0 || isLoading}
 					>
 						Previous
 					</Button>
-					<div className="flex items-center gap-1 px-2">
-            <span className="text-sm font-medium">
-              Page {currentPage + 1}
-            </span>
-						<span className="text-sm text-muted-foreground">
-              of {Math.max(totalPages, 1)}
-            </span>
-					</div>
 					<Button
 						variant="outline"
 						size="sm"
-						onClick={() =>
-							setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))
-						}
-						disabled={currentPage >= totalPages - 1 || totalPages === 0 || isLoading}
+						onClick={() => setCurrentPage(prev => prev + 1)}
+						disabled={currentPage >= totalPages - 1 || isLoading}
 					>
 						Next
 					</Button>
+					<div className="flex items-center space-x-2 ml-4">
+						<p className="text-sm text-muted-foreground">Rows per page</p>
+						<Select
+							value={pageSize.toString()}
+							onValueChange={handlePageSizeChange}
+							disabled={isLoading}
+						>
+							<SelectTrigger className="h-8 w-[70px] bg-background">
+								<SelectValue placeholder={pageSize} />
+							</SelectTrigger>
+							<SelectContent className="bg-background">
+								{[5, 10, 20, 50].map(size => (
+									<SelectItem key={size} value={size.toString()} className="hover:bg-accent">
+										{size}
+									</SelectItem>
+								))}
+							</SelectContent>
+						</Select>
+					</div>
 				</div>
 			</div>
-		</div>
+			<AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+			<AlertDialogContent>
+				<AlertDialogHeader>
+					<AlertDialogTitle>Are you sure?</AlertDialogTitle>
+					<AlertDialogDescription>
+						This action cannot be undone. This will permanently delete the stock "{stockToDelete?.name}".
+					</AlertDialogDescription>
+				</AlertDialogHeader>
+				<AlertDialogFooter>
+					<AlertDialogCancel disabled={isDeleting}>Cancel</AlertDialogCancel>
+					<AlertDialogAction 
+						onClick={handleConfirmDelete}
+						disabled={isDeleting}
+						className="bg-red-600 hover:bg-red-700 focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+					>
+						{isDeleting ? 'Deleting...' : 'Delete'}
+					</AlertDialogAction>
+				</AlertDialogFooter>
+			</AlertDialogContent>
+		</AlertDialog>
+	</div>
 	)
 }

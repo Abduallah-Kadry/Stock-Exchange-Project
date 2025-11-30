@@ -15,11 +15,12 @@ copy this
   - [ ] make the it retrieve it's registerd stocks 
 
 
+- so now you know that the first live in market trigger is delete stock  
 
 
 - [ ] styles
   - create modal button
-  - table show rows number button
+  - [x] table show rows number button
   - table style
   - 
 

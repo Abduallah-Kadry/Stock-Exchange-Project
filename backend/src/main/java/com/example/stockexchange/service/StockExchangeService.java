@@ -58,18 +58,20 @@ public class StockExchangeService {
         return stockExchangeMapper.map(stockExchange);
     }
 
+<<<<<<< Updated upstream
+   @Transactional
+=======
     @Transactional
-    public StockExchangeDto updateStockExchange(long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
+>>>>>>> Stashed changes
+    public StockExchangeDto updateStockExchange(Long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
         StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId));
 
         stockExchangeMapper.map(stockExchangeUpdateRequest, stockExchange);
         StockExchange updatedStockExchange = stockExchangeRepository.save(stockExchange);
-
         return stockExchangeMapper.map(updatedStockExchange);
 
     }
-
     @Transactional
     public void deleteStockExchange(Long stockExchangeId) {
         StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)

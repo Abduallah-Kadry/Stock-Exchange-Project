@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Circle } from "lucide-react"
+import { Circle, Pencil } from "lucide-react"
 import { fetchStockExchanges } from "@/lib/api"
 import { StockExchange } from "@/types/Stock"
 import { CreateStockExchangeModal } from "@/components/createStockExchangeModal"
@@ -16,7 +16,7 @@ export function StockExchangeTable() {
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
-  const [pageSize, setPageSize] = useState(5)
+  const [pageSize, setPageSize] = useState(20)
 
   const loadExchanges = async () => {
     setIsLoading(true)
@@ -111,7 +111,15 @@ export function StockExchangeTable() {
                       <UpdateStockExchangeModal 
                         exchange={exchange}
                         onExchangeUpdated={loadExchanges}
-                      />
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          title="Edit exchange"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </UpdateStockExchangeModal>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -156,12 +164,12 @@ export function StockExchangeTable() {
                 onValueChange={handlePageSizeChange}
                 disabled={isLoading}
               >
-                <SelectTrigger className="h-8 w-[70px]">
+                <SelectTrigger className="h-8 w-[70px] bg-background">
                   <SelectValue placeholder={pageSize} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background">
                   {[5, 10, 20, 50].map(size => (
-                    <SelectItem key={size} value={size.toString()}>
+                    <SelectItem key={size} value={size.toString()} className="hover:bg-accent">
                       {size}
                     </SelectItem>
                   ))}
