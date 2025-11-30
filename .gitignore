@@ -61,6 +61,7 @@ target/
 
 # Logs
 *.log
+/logs
 
 # Packaging files
 *.jar

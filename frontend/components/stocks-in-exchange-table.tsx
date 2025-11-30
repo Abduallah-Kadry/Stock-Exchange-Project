@@ -17,6 +17,15 @@ import {
 } from '@/components/ui/table';
 import { fetchStocksInExchange, removeStocksFromExchange } from '@/lib/api';
 import {Stock} from "@/types/Stock";
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction, AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog";
 
 export function StocksInExchangeTable({ exchangeId }: { exchangeId: string }) {
   const router = useRouter();
@@ -202,75 +211,84 @@ export function StocksInExchangeTable({ exchangeId }: { exchangeId: string }) {
         </Table>
       </div>
 
-      {/* Pagination */}
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="text-sm text-muted-foreground">
-          Showing{' '}
-          <span className="font-medium">
-            {stocks.length > 0 ? currentPage * pageSize + 1 : 0} -{' '}
-            {Math.min((currentPage + 1) * pageSize, totalElements)}
-          </span>{' '}
-          of <span className="font-medium">{totalElements}</span> stocks
-        </div>
+      <div className="flex items-center justify-between px-6 py-4 border-t">
         <div className="flex items-center space-x-2">
-          <select
-            value={pageSize}
-            onChange={(e) => handlePageSizeChange(e.target.value)}
-            className="h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
-          >
-            {[5, 10, 20, 50].map((size) => (
-              <option key={size} value={size}>
-                Show {size}
-              </option>
-            ))}
-          </select>
+          <p className="text-sm text-muted-foreground">
+            {stocks.length > 0 && totalElements > 0 ? (
+              <>
+                Showing <span className="font-medium">{(currentPage * pageSize) + 1}</span> to{' '}
+                <span className="font-medium">
+                  {Math.min((currentPage + 1) * pageSize, totalElements)}
+                </span>{' '}
+                of <span className="font-medium">{totalElements}</span> stocks
+              </>
+            ) : (
+              'No stocks found'
+            )}
+          </p>
+        </div>
+
+        <div className="flex items-center space-x-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
+            onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
             disabled={currentPage === 0 || isLoading}
           >
-            <ChevronLeft className="h-4 w-4" />
+            Previous
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setCurrentPage((prev) => prev + 1)}
+            onClick={() => setCurrentPage(prev => prev + 1)}
             disabled={currentPage >= totalPages - 1 || isLoading}
           >
-            <ChevronRight className="h-4 w-4" />
+            Next
           </Button>
+          <div className="flex items-center space-x-2 ml-4">
+            <p className="text-sm text-muted-foreground">Rows per page</p>
+            <Select
+              value={pageSize.toString()}
+              onValueChange={handlePageSizeChange}
+              disabled={isLoading}
+            >
+              <SelectTrigger className="h-8 w-[70px] bg-background">
+                <SelectValue placeholder={pageSize} />
+              </SelectTrigger>
+              <SelectContent className="bg-background">
+                {[5, 10, 20, 50].map(size => (
+                  <SelectItem key={size} value={size.toString()} className="hover:bg-accent">
+                    {size}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </div>
 
       {/* Confirmation Dialog */}
-      {isConfirmDialogOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-background p-6 rounded-lg max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Confirm Deletion</h3>
-            <p className="text-muted-foreground mb-6">
-              Are you sure you want to remove {selectedStockIds.length} selected stock(s) from this exchange?
+      <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {selectedStockIds.length} {selectedStockIds.length === 1 ? 'stock' : 'stocks'} from exchange?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {selectedStockIds.length} selected {selectedStockIds.length === 1 ? 'stock' : 'stocks'} from this exchange?
               This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsConfirmDialogOpen(false)}
-                disabled={isDeletingStocks}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteStocks}
-                disabled={isDeletingStocks}
-              >
-                {isDeletingStocks ? 'Deleting...' : 'Delete'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeletingStocks}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteStocks}
+              disabled={isDeletingStocks}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeletingStocks ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

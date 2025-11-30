@@ -1,0 +1,42 @@
+'use client';
+
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { UpdateStockExchangeModal } from "./updateStockExchangeModal";
+import { StockExchange } from "@/types/Stock";
+import { updateStockExchange } from "@/lib/api";
+import { useRouter } from 'next/navigation';
+
+interface UpdateExchangeButtonProps {
+  exchange: StockExchange;
+}
+
+export function UpdateExchangeButton({ exchange }: UpdateExchangeButtonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const router = useRouter();
+
+  const handleSuccess = () => {
+    // Refresh only the current route
+    router.refresh();
+    setIsOpen(false);
+  };
+
+  return (
+    <UpdateStockExchangeModal
+      exchange={exchange}
+      isOpen={isOpen}
+      onOpenChange={setIsOpen}
+      onSuccess={handleSuccess}
+    >
+      <Button
+        variant="ghost"
+        size="icon"
+        title="Edit exchange"
+        onClick={() => setIsOpen(true)}
+      >
+        <Pencil className="h-4 w-4"/>
+      </Button>
+    </UpdateStockExchangeModal>
+  );
+}

@@ -21,47 +21,58 @@ import { toast } from 'react-hot-toast';
 
 interface UpdateStockExchangeModalProps {
   exchange: StockExchange;
-  onExchangeUpdated: () => void;
+  onSuccess?: () => void;
   children: React.ReactNode;
 }
 
-export function UpdateStockExchangeModal({ exchange, onExchangeUpdated, children }: UpdateStockExchangeModalProps) {
-  const [open, setOpen] = useState(false);
+export function UpdateStockExchangeModal({ 
+  exchange, 
+  onSuccess, 
+  children 
+}: UpdateStockExchangeModalProps) {
+  const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState({
     name: exchange.name,
     description: exchange.description || '',
-    liveInMarket: exchange.liveInMarket || false
+    liveInMarket: exchange.liveInMarket
   });
 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    setErrors({});
-
+    
+    // Validate form
+    const newErrors: Record<string, string> = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+    
+    if (!formData.description.trim()) {
+      newErrors.description = 'Description is required';
+    }
+    
+    setErrors(newErrors);
+    
+    if (Object.keys(newErrors).length > 0) {
+      return;
+    }
+    
     try {
-      await updateStockExchange(exchange.stockExchangeId, formData);
-      toast.success('Stock exchange updated successfully');
-      setOpen(false);
-      onExchangeUpdated();
-    } catch (error: any) {
-      console.error("Error updating stock exchange:", error);
+      await updateStockExchange(exchange.stockExchangeId.toString(), {
+        name: formData.name,
+        description: formData.description,
+      });
       
-      if (error.response?.data?.errors) {
-        const backendErrors: Record<string, string> = {};
-        error.response.data.errors.forEach((err: any) => {
-          backendErrors[err.field] = err.message;
-        });
-        setErrors(backendErrors);
-      } else {
-        setErrors({
-          general: error.response?.data?.message || "Failed to update stock exchange. Please try again."
-        });
-      }
-    } finally {
-      setIsSubmitting(false);
+      toast.success('Stock exchange updated successfully');
+      onSuccess?.();
+      setIsOpen(false);
+      setIsOpen(false);
+    } catch (error) {
+      console.error('Error updating stock exchange:', error);
+      toast.error('Failed to update stock exchange');
     }
   };
 
@@ -79,15 +90,15 @@ export function UpdateStockExchangeModal({ exchange, onExchangeUpdated, children
       setFormData({
         name: exchange.name,
         description: exchange.description || '',
-        liveInMarket: exchange.liveInMarket || false
+        liveInMarket: exchange.liveInMarket
       });
       setErrors({});
     }
-    setOpen(newOpen);
+    setIsOpen(newOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -136,7 +147,7 @@ export function UpdateStockExchangeModal({ exchange, onExchangeUpdated, children
                 placeholder="Brief description of the stock exchange"
                 value={formData.description}
                 onChange={(e) => handleInputChange("description", e.target.value)}
-                maxLength={100}
+                maxLength={255}
                 rows={3}
                 className={errors.description ? "border-destructive" : ""}
               />
@@ -144,30 +155,17 @@ export function UpdateStockExchangeModal({ exchange, onExchangeUpdated, children
                 <p className="text-sm text-destructive">{errors.description}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                {formData.description.length}/100 characters
+                {formData.description.length}/255 characters
               </p>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              <div className="space-y-0.5">
-                <Label htmlFor="liveInMarket">Live in Market</Label>
-                <p className="text-sm text-muted-foreground">
-                  {formData.liveInMarket ? 'Exchange is currently active' : 'Exchange is currently inactive'}
-                </p>
-              </div>
-              <Switch
-                id="liveInMarket"
-                checked={formData.liveInMarket}
-                onCheckedChange={(checked) => handleInputChange("liveInMarket", checked)}
-              />
-            </div>
           </div>
 
           <DialogFooter>
             <Button
               type="button"
               variant="outline"
-              onClick={() => setOpen(false)}
+              // onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
               Cancel

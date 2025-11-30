@@ -201,12 +201,10 @@ export async function fetchStockExchanges(page: number = 0, size: number = 5): P
 export interface UpdateStockExchangeRequest {
 	name: string;
 	description: string;
-	liveInMarket: boolean;
 }
 
 export async function updateStockExchange(id: string, exchange: UpdateStockExchangeRequest): Promise<StockExchange> {
 
-	console.log(exchange)
 	const response = await fetchWithAuth(`/stockExchange/${id}`, {
 		method: 'PUT',
 		body: JSON.stringify(exchange),
@@ -359,7 +357,7 @@ export interface StockExchangeDetails extends StockExchange {
 	// Add any additional fields that might be returned by the API
 }
 
-export const fetchStockExchange = async (id: number): Promise<StockExchangeDetails> => {
+export const fetchStockExchange = async (id: number, refreshKey: string): Promise<StockExchangeDetails> => {
 	try {
 		console.log(`Attempting to fetch stock exchange with ID: ${id}`);
 		console.log(`API URL: ${API_BASE_URL}/stockExchange/${id}`);

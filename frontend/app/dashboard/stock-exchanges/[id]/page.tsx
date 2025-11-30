@@ -1,12 +1,13 @@
 import { notFound, redirect } from 'next/navigation';
 import { fetchStockExchange } from '@/lib/api';
 import { Suspense } from 'react';
-import { StockTable } from '@/components/stock-table';
 import { StocksInExchangeTable } from '@/components/stocks-in-exchange-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, TrendingUp } from 'lucide-react';
+import {Building2, Pencil, TrendingUp} from 'lucide-react';
 import {StocksNotInExchangeTable} from "@/components/stocks-not-in-exchange-table";
+import { UpdateExchangeButton } from "@/components/UpdateExchangeButton";
+import { DeleteExchangeButton } from "@/components/DeleteExchangeButton";
 
 interface StockExchangeDetailsProps {
   params: Promise<{
@@ -16,14 +17,13 @@ interface StockExchangeDetailsProps {
 
 export default async function StockExchangeDetails({ params }: StockExchangeDetailsProps) {
   const resolvedParams = await params;
-
   // Ensure we have the ID before proceeding
   if (!resolvedParams?.id) {
     console.error('No ID provided in params');
     notFound();
   }
 
-  const id = resolvedParams.id;
+  const { id } = resolvedParams;
 
   // Validate ID is a number
   const numericId = Number(id);
@@ -34,31 +34,25 @@ export default async function StockExchangeDetails({ params }: StockExchangeDeta
 
   let stockExchange;
 
+
   try {
-    console.log('Fetching stock exchange with ID:', numericId);
     stockExchange = await fetchStockExchange(numericId);
 
     if (!stockExchange) {
-      console.error('Stock exchange not found for ID:', numericId);
       notFound();
     }
 
-    console.log('Successfully fetched stock exchange:', stockExchange.name);
   } catch (error: unknown) {
-    console.error('Error fetching stock exchange:', error);
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
-        console.log('User unauthorized, redirecting to login');
         redirect('/login');
       }
       console.error('Error message:', error.message);
     }
 
-    // For any other errors, show not found
     notFound();
   }
-
   return (
     <div className="container mx-auto py-8 space-y-8">
       {/* Header Section */}
@@ -69,6 +63,13 @@ export default async function StockExchangeDetails({ params }: StockExchangeDeta
               <div className="flex items-center gap-3">
                 <Building2 className="h-8 w-8 text-primary" />
                 <CardTitle className="text-3xl">{stockExchange.name}</CardTitle>
+                <div className="flex items-center gap-1">
+                  <UpdateExchangeButton exchange={stockExchange} />
+                  <DeleteExchangeButton 
+                    exchangeId={stockExchange.stockExchangeId} 
+                    exchangeName={stockExchange.name}
+                  />
+                </div>
               </div>
               <CardDescription className="text-base">
                 {stockExchange.description || 'No description available'}
@@ -144,21 +145,3 @@ function LoadingState({ message }: { message: string }) {
     </div>
   );
 }
-//
-// // Generate metadata for SEO
-// export async function generateMetadata({ params }: StockExchangeDetailsProps) {
-//   try {
-//     const resolvedParams = await params;
-//     const stockExchange = await fetchStockExchange(Number(resolvedParams.id));
-//
-//     return {
-//       title: `${stockExchange.name} - Stock Exchange Details`,
-//       description: stockExchange.description || `View details for ${stockExchange.name}`,
-//     };
-//   } catch {
-//     return {
-//       title: 'Stock Exchange Details',
-//       description: 'View stock exchange information',
-//     };
-//   }
-// }

@@ -15,9 +15,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
          shadow-2xl  overflow-hidden">
           <CardHeader className="border-b border-white/10 dark:border-white/10">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl font-bold text-slate-900 dark:text-white">
-                Dashboard
-              </CardTitle>
+              <div className="flex items-center gap-2">
+                <a href="/dashboard" className="text-slate-900 dark:text-white">
+                  <CardTitle className="text-2xl font-bold">
+                    Dashboard
+                  </CardTitle>
+                </a>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-1">

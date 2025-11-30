@@ -1,9 +1,9 @@
 -- Insert Stock Exchanges
 INSERT INTO stock_exchange (name, description, live_in_market) VALUES
-                                                                   ('New York Stock Exchange', 'The world''s largest stock exchange by market capitalization', TRUE),
-                                                                   ('NASDAQ', 'American stock exchange focused on technology stocks', TRUE),
-                                                                   ('London Stock Exchange', 'One of the oldest stock exchanges in the world', TRUE),
-                                                                   ('Tokyo Stock Exchange', 'The largest stock exchange in Asia', TRUE),
+                                                                   ('New York Stock Exchange', 'The world''s largest stock exchange by market capitalization', FALSE),
+                                                                   ('NASDAQ', 'American stock exchange focused on technology stocks', FALSE),
+                                                                   ('London Stock Exchange', 'One of the oldest stock exchanges in the world', FALSE),
+                                                                   ('Tokyo Stock Exchange', 'The largest stock exchange in Asia', FALSE),
                                                                    ('Shanghai Stock Exchange', 'Major stock exchange in mainland China', FALSE);
 
 -- Insert Stocks

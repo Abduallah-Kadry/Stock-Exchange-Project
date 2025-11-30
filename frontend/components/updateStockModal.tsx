@@ -127,11 +127,11 @@ export function UpdateStockModal({ stock, onStockUpdated, children }: UpdateStoc
                   id="currentPrice"
                   type="number"
                   step="0.01"
-                  min="0.01"
+                  min="0"
+                  placeholder="0.00"
                   value={formData.currentPrice}
                   onChange={(e) => handleInputChange('currentPrice', e.target.value)}
-                  placeholder="Enter new price"
-                  className="w-full"
+                  className={`pl-7 w-full [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${errors.currentPrice ? 'border-destructive' : ''}`}
                   required
                 />
                 {errors.currentPrice && (

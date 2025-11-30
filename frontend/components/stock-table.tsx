@@ -73,7 +73,7 @@ export function StockTable() {
 		try {
 			const date = new Date(dateString);
 			const formattedDate = format(date, "MMM d, yyyy");
-			const formattedTime = format(date, "HH:mm");
+			const formattedTime = format(date, "h:mm a");
 			return (
 				<div className="flex flex-col">
 					<span>{formattedDate}</span>

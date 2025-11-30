@@ -22,6 +22,7 @@ import {
 	AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 
+
 export function StockExchangeTable() {
 	const router = useRouter();
 	const [exchanges, setExchanges] = useState<StockExchange[]>([])
@@ -155,7 +156,7 @@ export function StockExchangeTable() {
 											</Button>
 											<UpdateStockExchangeModal
 												exchange={exchange}
-												onExchangeUpdated={loadExchanges}
+												onSuccess={loadExchanges}
 											>
 												<Button
 													variant="ghost"
