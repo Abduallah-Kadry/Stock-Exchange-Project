@@ -453,10 +453,6 @@ export async function fetchStocksNotInExchange(
 
 export const addStocksToExchange = async (exchangeId: number, stockIds: string[]): Promise<void> => {
 	try {
-		console.log(stockIds)
-
-
-
 		const response = await fetchWithAuth(`/stockExchange/${exchangeId}/stocks`, {
 			method: 'POST',
 			body: JSON.stringify({
@@ -472,3 +468,24 @@ export const addStocksToExchange = async (exchangeId: number, stockIds: string[]
 		throw error
 	}
 };
+
+export const removeStocksFromExchange = async (exchangeId: number, stockIds: string[]): Promise<void> => {
+	try {
+		const response = await fetchWithAuth(`/stockExchange/${exchangeId}/stocks`, {
+			method: 'DELETE',
+			body: JSON.stringify({
+				stockIds
+			}),
+		});
+
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}));
+			throw new Error(errorData.message || 'Failed to remove stocks from exchange');
+		}
+	} catch (error) {
+		console.error('Error in removeStocksFromExchange:', error);
+		throw error;
+	}
+};
+
+

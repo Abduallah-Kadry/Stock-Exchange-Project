@@ -71,7 +71,15 @@ export function StockTable() {
 	const formatDate = (dateString?: string) => {
 		if (!dateString) return "N/A"
 		try {
-			return format(new Date(dateString), "MMM d, yyyy")
+			const date = new Date(dateString);
+			const formattedDate = format(date, "MMM d, yyyy");
+			const formattedTime = format(date, "HH:mm");
+			return (
+				<div className="flex flex-col">
+					<span>{formattedDate}</span>
+					<span className="text-xs text-muted-foreground">{formattedTime}</span>
+				</div>
+			);
 		} catch (error) {
 			return "Invalid Date"
 		}
@@ -136,9 +144,9 @@ export function StockTable() {
 							<TableHead className="font-semibold">Stock ID</TableHead>
 							<TableHead className="font-semibold">Name</TableHead>
 							<TableHead className="font-semibold">Description</TableHead>
-							<TableHead className="text-right font-semibold">Price</TableHead>
+							<TableHead className="text-right font-semibold pr-9">Price</TableHead>
+							<TableHead className="font-semibold w-48">Last Updated</TableHead>
 							<TableHead className="text-right font-semibold">Actions</TableHead>
-							{/*<TableHead className="text-right font-semibold">Created At</TableHead>*/}
 						</TableRow>
 					</TableHeader>
 					<TableBody>
@@ -173,8 +181,12 @@ export function StockTable() {
 									<TableCell className="max-w-xs truncate text-muted-foreground">
 										{stock.description || "No description available"}
 									</TableCell>
-									<TableCell className="text-right font-semibold">
-										{formatMarketCap(stock.currentPrice)}
+									<TableCell
+										className="text-right font-mono font-medium pr-9">
+										{stock.currentPrice ? `$${stock.currentPrice.toFixed(2)}` : "N/A"}
+									</TableCell>
+									<TableCell className="text-muted-foreground">
+										{formatDate(stock.updatedAt)}
 									</TableCell>
 									<TableCell className="text-right">
 										<div className="flex justify-end space-x-2">

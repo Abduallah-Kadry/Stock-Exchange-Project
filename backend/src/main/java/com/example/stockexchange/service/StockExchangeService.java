@@ -198,6 +198,43 @@ public class StockExchangeService {
 
 
     @Transactional
+    public void removeStocksFromStockExchange(Long stockExchangeId, List<Long> stockIds) {
+        if (stockIds == null || stockIds.isEmpty()) {
+            throw new IllegalArgumentException("Stock IDs list cannot be null or empty");
+        }
+
+        // Get the stock exchange once
+        StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Stock Exchange not found with id: " + stockExchangeId));
+
+        // Get all stock listings at once
+        List<StockListingId> listingIds = stockIds.stream()
+                .map(stockId -> new StockListingId(stockExchangeId, stockId))
+                .toList();
+                
+        List<StockListing> listings = stockListingRepository.findAllById(listingIds);
+        
+        // Check if all stocks were found in the exchange
+        if (listings.size() != stockIds.size()) {
+            Set<Long> foundStockIds = listings.stream()
+                    .map(listing -> listing.getStock().getStockId())
+                    .collect(Collectors.toSet());
+                    
+            List<Long> missingStockIds = stockIds.stream()
+                    .filter(id -> !foundStockIds.contains(id))
+                    .toList();
+                    
+            throw new ResourceNotFoundException(
+                    "The following stocks are not listed on this exchange: " + missingStockIds);
+        }
+
+        // Delete all listings in batch
+        stockListingRepository.deleteAllInBatch(listings);
+        updateLiveMarketStatus(stockExchange);
+    }
+
+    @Transactional
     public void removeStockFromStockExchange(Long stockExchangeId, Long stockId) {
         StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
                 .orElseThrow(() -> new ResourceNotFoundException(
@@ -209,7 +246,6 @@ public class StockExchangeService {
                         "Stock with id " + stockId + " is not listed on this Stock Exchange"));
 
         stockListingRepository.delete(stockListing);
-
         updateLiveMarketStatus(stockExchange);
     }
 

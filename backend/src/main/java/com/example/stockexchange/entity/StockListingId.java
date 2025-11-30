@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.io.Serializable;
 
+
+// composite key
 @Embeddable
 @Data
 @NoArgsConstructor

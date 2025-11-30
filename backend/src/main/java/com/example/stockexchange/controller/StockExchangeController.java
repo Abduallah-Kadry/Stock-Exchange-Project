@@ -208,6 +208,25 @@ public class StockExchangeController {
                 ));
     }
 
+    @Operation(summary = "Remove multiple stocks from stock exchange", 
+              description = "Removes multiple stocks from a stock exchange in a single operation")
+    @ApiResponse(responseCode = "200", description = "Stocks removed from stock exchange successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request data")
+    @ApiResponse(responseCode = "404", description = "Stock exchange or one or more stock listings not found")
+    @PreAuthorize("hasRole('USER')")
+    @DeleteMapping(value = "/{stockExchangeId}/stocks")
+    public ResponseEntity<ApiRespond> removeStocksFromStockExchange(
+            @PathVariable @Positive long stockExchangeId,
+            @Valid @RequestBody AddStocksToExchangeRequest request) {
+            
+        stockExchangeService.removeStocksFromStockExchange(stockExchangeId, request.getStockIds());
+        
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stocks removed successfully from stock exchange",
+                null
+        ));
+    }
 
     @Operation(summary = "Remove stock from stock exchange", description = "Removes a stock from a stock exchange")
     @ApiResponse(responseCode = "204", description = "Stock removed from stock exchange successfully")
