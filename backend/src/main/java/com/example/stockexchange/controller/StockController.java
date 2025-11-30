@@ -28,6 +28,20 @@ public class StockController {
 
     private final StockService stockService;
 
+    @Operation(summary = "Get stock by ID", description = "Retrieves a single stock by its ID")
+    @ApiResponse(responseCode = "200", description = "Stock found and returned")
+    @ApiResponse(responseCode = "404", description = "Stock not found")
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiRespond> getStockById(@PathVariable @Positive long id) {
+        StockDto stock = stockService.getStockById(id);
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stock retrieved successfully",
+                stock
+        ));
+    }
+
     @Operation(summary = "Get all Stocks", description = "Retrieves a paginated list of all Stocks")
     @PreAuthorize("hasRole('USER')")
     @GetMapping

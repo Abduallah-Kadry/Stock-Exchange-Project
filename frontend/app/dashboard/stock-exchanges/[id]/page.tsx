@@ -14,7 +14,6 @@ interface StockExchangeDetailsProps {
 }
 
 export default async function StockExchangeDetails({ params }: StockExchangeDetailsProps) {
-  // Await params in Next.js 15+
   const resolvedParams = await params;
 
   // Ensure we have the ID before proceeding
@@ -145,21 +144,21 @@ function LoadingState({ message }: { message: string }) {
     </div>
   );
 }
-
-// Generate metadata for SEO
-export async function generateMetadata({ params }: StockExchangeDetailsProps) {
-  try {
-    const resolvedParams = await params;
-    const stockExchange = await fetchStockExchange(Number(resolvedParams.id));
-
-    return {
-      title: `${stockExchange.name} - Stock Exchange Details`,
-      description: stockExchange.description || `View details for ${stockExchange.name}`,
-    };
-  } catch {
-    return {
-      title: 'Stock Exchange Details',
-      description: 'View stock exchange information',
-    };
-  }
-}
+//
+// // Generate metadata for SEO
+// export async function generateMetadata({ params }: StockExchangeDetailsProps) {
+//   try {
+//     const resolvedParams = await params;
+//     const stockExchange = await fetchStockExchange(Number(resolvedParams.id));
+//
+//     return {
+//       title: `${stockExchange.name} - Stock Exchange Details`,
+//       description: stockExchange.description || `View details for ${stockExchange.name}`,
+//     };
+//   } catch {
+//     return {
+//       title: 'Stock Exchange Details',
+//       description: 'View stock exchange information',
+//     };
+//   }
+// }

@@ -88,6 +88,13 @@ public class StockService {
         return stockMapper.map(stock);
     }
 
+    @Transactional(readOnly = true)
+    public StockDto getStockById(Long stockId) {
+        return stockRepository.findById(stockId)
+                .map(stockMapper::map)
+                .orElseThrow(() -> new ResourceNotFoundException("Stock not found with id: " + stockId));
+    }
+
     @Transactional
     public void deleteStock(Long stockId) {
         Stock stock = stockRepository.findById(stockId)

@@ -239,6 +239,34 @@ export async function updateStockExchange(id: string, exchange: UpdateStockExcha
   return responseData.data;
 }
 
+export const fetchStockExchangesForStock = async (
+  stockId: string,
+  page: number = 0,
+  size: number = 10,
+  sortBy: string = 'name'
+): Promise<PaginatedResponse<StockExchange>> => {
+  try {
+    console.log(`Fetching stock exchanges for stock ID: ${stockId}`);
+
+    const response = await fetchWithAuth(
+      `/stock/stocks/${stockId}/exchanges?page=${page}&size=${size}&sortBy=${sortBy}`
+    );
+
+    if (!response.ok) {
+      console.error(`Failed to fetch exchanges for stock: ${response.status}`);
+      throw new Error('Failed to fetch stock exchanges for this stock');
+    }
+
+    const data = await response.json();
+    console.log(`Successfully fetched ${data.data?.content?.length || 0} exchanges`);
+
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching stock exchanges for stock:', error);
+    throw error;
+  }
+};
+
 export async function createStockExchange(exchange: CreateStockExchangeRequest): Promise<StockExchange> {
 	const response = await fetchWithAuth('/stockExchange', {
 		method: 'POST',
