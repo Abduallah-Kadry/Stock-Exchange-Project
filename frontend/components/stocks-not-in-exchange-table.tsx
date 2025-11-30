@@ -1,21 +1,35 @@
 "use client"
-import {format} from "date-fns"
 import {useEffect, useState} from "react"
 import {Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow} from "@/components/ui/table"
 import {Button} from "@/components/ui/button"
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select"
-import {fetchStocksNotInExchange} from "@/lib/api"
+import {Checkbox} from "@/components/ui/checkbox"
+import {fetchStocksNotInExchange, addStocksToExchange} from "@/lib/api"
 import {Stock} from "@/types/Stock"
-import {Eye} from "lucide-react"
+import {Eye, Plus} from "lucide-react"
 import {useRouter} from "next/navigation"
+import {toast} from "sonner"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from "@/components/ui/alert-dialog"
 
 export function StocksNotInExchangeTable({ exchangeId }: { exchangeId: string }) {
   const router = useRouter()
   const [stocks, setStocks] = useState<Stock[]>([])
+  const [selectedStockIds, setSelectedStockIds] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [totalElements, setTotalElements] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
+  const [isAddingStocks, setIsAddingStocks] = useState(false)
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
   const [pageSize, setPageSize] = useState(10)
   const numericExchangeId = Number(exchangeId)
 
@@ -55,10 +69,57 @@ export function StocksNotInExchangeTable({ exchangeId }: { exchangeId: string })
   const handlePageSizeChange = (value: string) => {
     setPageSize(Number(value))
     setCurrentPage(0)
+    setSelectedStockIds([])
+  }
+
+  const handleSelectStock = (stockId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedStockIds(prev => [...prev, stockId])
+    } else {
+      setSelectedStockIds(prev => prev.filter(id => id !== stockId))
+    }
+  }
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedStockIds(stocks.map(stock => stock.stockId || ''))
+    } else {
+      setSelectedStockIds([])
+    }
+  }
+
+  const handleAddStocks = async () => {
+    if (selectedStockIds.length === 0) return
+    
+    try {
+      setIsAddingStocks(true)
+      await addStocksToExchange(numericExchangeId, selectedStockIds)
+      toast.success('Successfully added stocks to exchange')
+      setSelectedStockIds([])
+      loadStocks() // Refresh the list
+    } catch (error) {
+      console.error('Error adding stocks to exchange:', error)
+      toast.error('Failed to add stocks to exchange')
+    } finally {
+      setIsAddingStocks(false)
+      setIsConfirmDialogOpen(false)
+    }
   }
 
   return (
     <div className="w-full space-y-4">
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-medium">Available Stocks</h3>
+        <Button 
+          onClick={() => selectedStockIds.length > 0 && setIsConfirmDialogOpen(true)}
+          disabled={selectedStockIds.length === 0 || isAddingStocks}
+          className="gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          {isAddingStocks ? 'Adding...' : `Add ${selectedStockIds.length} selected stocks`}
+        </Button>
+      </div>
+      
       <div className="rounded-lg border bg-card">
         <Table>
           <TableCaption className="py-4">
@@ -66,6 +127,13 @@ export function StocksNotInExchangeTable({ exchangeId }: { exchangeId: string })
           </TableCaption>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
+              <TableHead className="w-12">
+                <Checkbox 
+                  checked={stocks.length > 0 && selectedStockIds.length === stocks.length}
+                  onCheckedChange={handleSelectAll}
+                  aria-label="Select all"
+                />
+              </TableHead>
               <TableHead className="font-semibold">Stock ID</TableHead>
               <TableHead className="font-semibold">Name</TableHead>
               <TableHead className="font-semibold">Description</TableHead>
@@ -95,6 +163,13 @@ export function StocksNotInExchangeTable({ exchangeId }: { exchangeId: string })
             ) : (
               stocks.map((stock) => (
                 <TableRow key={stock.stockId} className="hover:bg-muted/50">
+                  <TableCell>
+                    <Checkbox 
+                      checked={selectedStockIds.includes(stock.stockId || '')}
+                      onCheckedChange={(checked) => handleSelectStock(stock.stockId || '', checked === true)}
+                      aria-label={`Select ${stock.name}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-mono text-sm">
                     {stock.stockId || "N/A"}
                   </TableCell>
@@ -184,6 +259,27 @@ export function StocksNotInExchangeTable({ exchangeId }: { exchangeId: string })
           </div>
         </div>
       </div>
+
+      <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Add {selectedStockIds.length} stocks to exchange?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to add {selectedStockIds.length} selected {selectedStockIds.length === 1 ? 'stock' : 'stocks'} to this exchange?
+              This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isAddingStocks}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleAddStocks}
+              disabled={isAddingStocks}
+            >
+              {isAddingStocks ? 'Adding...' : 'Add Stocks'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -431,21 +431,44 @@ export async function fetchStocksNotInExchange(
 	exchangeId: number,
 	page: number = 0,
 	size: number = 10,
-	sortBy: string = 'name'
 ): Promise<PaginatedResponse<Stock>> {
 	try {
 		const response = await fetchWithAuth(
 			`/stockExchange/${exchangeId}/stocks/not-listed?page=${page}&size=${size}`
-		);
-
+		)
+		
 		if (!response.ok) {
-			throw new Error('Failed to fetch stocks not in exchange');
+			const errorData = await response.json().catch(() => ({}))
+			throw new Error(errorData.message || 'Failed to fetch stocks not in exchange')
 		}
 
-		const data = await response.json();
-		return data.data;
+		const responseData = await response.json()
+		console.log('Fetched stocks not in exchange:', responseData)
+		return responseData.data
 	} catch (error) {
-		console.error('Error fetching stocks not in exchange:', error);
-		throw error;
+		console.error('Error in fetchStocksNotInExchange:', error)
+		throw error
+	}
+}
+
+export const addStocksToExchange = async (exchangeId: number, stockIds: string[]): Promise<void> => {
+	try {
+		console.log(stockIds)
+
+
+
+		const response = await fetchWithAuth(`/stockExchange/${exchangeId}/stocks`, {
+			method: 'POST',
+			body: JSON.stringify({
+				stockIds
+			}),
+		})
+		if (!response.ok) {
+			const errorData = await response.json().catch(() => ({}))
+			throw new Error(errorData.message || 'Failed to add stocks to exchange')
+		}
+	} catch (error) {
+		console.error('Error in addStocksToExchange:', error)
+		throw error
 	}
 };

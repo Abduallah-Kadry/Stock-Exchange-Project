@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Clock, DollarSign, Hash, Building2 } from 'lucide-react';
 import { Suspense } from 'react';
-import { StockExchangesForStockTable } from '@/components/stock-exchanges-for-stock-table';
+import { StockExchangesForStockTable } from "@/components/stock-exchanges-for-stock-table";
 
 interface StockDetailsProps {
   params: Promise<{ id: string }>;
