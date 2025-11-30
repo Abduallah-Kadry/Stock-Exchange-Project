@@ -58,11 +58,7 @@ public class StockExchangeService {
         return stockExchangeMapper.map(stockExchange);
     }
 
-<<<<<<< Updated upstream
-   @Transactional
-=======
     @Transactional
->>>>>>> Stashed changes
     public StockExchangeDto updateStockExchange(Long stockExchangeId, StockExchangeUpdateRequest stockExchangeUpdateRequest) {
         StockExchange stockExchange = stockExchangeRepository.findById(stockExchangeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Stock Exchange not found with id: " + stockExchangeId));

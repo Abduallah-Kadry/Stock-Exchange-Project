@@ -150,6 +150,21 @@ export async function deleteStock(stockId: string): Promise<void> {
   }
 }
 
+export async function deleteStockExchange(stockExchangeId: string): Promise<void> {
+  try {
+    const response = await fetchWithAuth(`/stockExchange/${stockExchangeId}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to delete stock exchange');
+    }
+  } catch (error) {
+    console.error('Error deleting stock exchange:', error);
+    throw error;
+  }
+}
+
 export async function fetchStockExchanges(page: number = 0, size: number = 5): Promise<PaginatedResponse<StockExchange>> {
 	try {
 		const response = await fetchWithAuth(`/stockExchange?page=${page}&size=${size}`);
