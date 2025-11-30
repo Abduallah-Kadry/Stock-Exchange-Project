@@ -357,7 +357,7 @@ export interface StockExchangeDetails extends StockExchange {
 	// Add any additional fields that might be returned by the API
 }
 
-export const fetchStockExchange = async (id: number, refreshKey: string): Promise<StockExchangeDetails> => {
+export const fetchStockExchange = async (id: number): Promise<StockExchangeDetails> => {
 	try {
 		console.log(`Attempting to fetch stock exchange with ID: ${id}`);
 		console.log(`API URL: ${API_BASE_URL}/stockExchange/${id}`);

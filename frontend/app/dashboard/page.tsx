@@ -9,7 +9,7 @@ import {StockExchangeTable} from "@/components/stock-exchange-table";
 export default async function DashboardPage() {
 
 	return (
-		<div className="p-6">
+		<div className="p-12">
 			<Tabs defaultValue="stocks">
 				<TabsList>
 					<TabsTrigger value="stocks">Stocks</TabsTrigger>

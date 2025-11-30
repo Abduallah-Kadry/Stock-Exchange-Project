@@ -5,6 +5,9 @@ import { Badge } from '@/components/ui/badge';
 import { TrendingUp, Clock, DollarSign, Hash, Building2 } from 'lucide-react';
 import { Suspense } from 'react';
 import { StockExchangesForStockTable } from "@/components/stock-exchanges-for-stock-table";
+import { UpdateStockButton } from "@/components/UpdateStockButton";
+import { DeleteStockButton } from "@/components/DeleteStockButton";
+import { Stock } from "@/types/Stock";
 
 interface StockDetailsProps {
   params: Promise<{ id: string }>;
@@ -93,9 +96,18 @@ export default async function StockDetailsPage({ params }: StockDetailsProps) {
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <TrendingUp className="h-8 w-8 text-primary" />
-                <CardTitle className="text-3xl">{stock.name}</CardTitle>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <TrendingUp className="h-8 w-8 text-primary" />
+                  <CardTitle className="text-3xl">{stock.name}</CardTitle>
+                </div>
+                <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
+                  <UpdateStockButton stock={stock as Stock} />
+                  <DeleteStockButton 
+                    stockId={stock.stockId.toString()} 
+                    stockName={stock.name}
+                  />
+                </div>
               </div>
               <CardDescription className="text-base">
                 {stock.description || 'No description available'}

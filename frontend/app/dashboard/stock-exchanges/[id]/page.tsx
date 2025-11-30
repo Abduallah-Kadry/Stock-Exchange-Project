@@ -4,7 +4,7 @@ import { Suspense } from 'react';
 import { StocksInExchangeTable } from '@/components/stocks-in-exchange-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import {Building2, Pencil, TrendingUp} from 'lucide-react';
+import { Building2, TrendingUp } from 'lucide-react';
 import {StocksNotInExchangeTable} from "@/components/stocks-not-in-exchange-table";
 import { UpdateExchangeButton } from "@/components/UpdateExchangeButton";
 import { DeleteExchangeButton } from "@/components/DeleteExchangeButton";
@@ -60,10 +60,12 @@ export default async function StockExchangeDetails({ params }: StockExchangeDeta
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Building2 className="h-8 w-8 text-primary" />
-                <CardTitle className="text-3xl">{stockExchange.name}</CardTitle>
-                <div className="flex items-center gap-1">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <Building2 className="h-8 w-8 text-primary" />
+                  <CardTitle className="text-3xl">{stockExchange.name}</CardTitle>
+                </div>
+                <div className="flex items-center gap-1 border-l border-gray-200 dark:border-gray-700 pl-3">
                   <UpdateExchangeButton exchange={stockExchange} />
                   <DeleteExchangeButton 
                     exchangeId={stockExchange.stockExchangeId} 
