@@ -8,41 +8,41 @@ const API_BASE_URL = 'http://localhost:8080/api/v1';
 
 // Helper function for making authenticated requests
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-  // Detect server vs client
-  const isServer = typeof window === 'undefined';
+	// Detect server vs client
+	const isServer = typeof window === 'undefined';
 
-  // When running on the server, forward incoming cookies to the backend
-  let cookieHeader = '';
-  if (isServer) {
-    try {
-      const { cookies } = await import('next/headers');
-      const store = await cookies();
-      const all = store.getAll();
-      if (all.length > 0) {
-        cookieHeader = all.map((c) => `${c.name}=${c.value}`).join('; ');
-      }
-    } catch {
-      // no-op: next/headers not available in this context
-    }
-  }
+	// When running on the server, forward incoming cookies to the backend
+	let cookieHeader = '';
+	if (isServer) {
+		try {
+			const {cookies} = await import('next/headers');
+			const store = await cookies();
+			const all = store.getAll();
+			if (all.length > 0) {
+				cookieHeader = all.map((c) => `${c.name}=${c.value}`).join('; ');
+			}
+		} catch {
+			// no-op: next/headers not available in this context
+		}
+	}
 
-  const response = await fetch(`${API_BASE_URL}${url}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
-      ...options.headers,
-    },
-    credentials: 'include',
-  });
+	const response = await fetch(`${API_BASE_URL}${url}`, {
+		...options,
+		headers: {
+			'Content-Type': 'application/json',
+			...(cookieHeader ? {Cookie: cookieHeader} : {}),
+			...options.headers,
+		},
+		credentials: 'include',
+	});
 
-  // Only redirect if we're in the browser
-  if (!isServer && response.status === 401) {
-    window.location.href = '/login';
-    throw new Error('Unauthorized');
-  }
+	// Only redirect if we're in the browser
+	if (!isServer && response.status === 401) {
+		window.location.href = '/login';
+		throw new Error('Unauthorized');
+	}
 
-  return response;
+	return response;
 };
 
 export const registerUser = async (data: RegisterRequest): Promise<ResponseMessage> => {
@@ -155,33 +155,33 @@ export async function createStock(stock: CreateStockRequest): Promise<Stock> {
 }
 
 export async function deleteStock(stockId: string): Promise<void> {
-  try {
-    const response = await fetchWithAuth(`/stock/${stockId}`, {
-      method: 'DELETE',
-    });
+	try {
+		const response = await fetchWithAuth(`/stock/${stockId}`, {
+			method: 'DELETE',
+		});
 
-    if (!response.ok) {
-      throw new Error('Failed to delete stock');
-    }
-  } catch (error) {
-    console.error('Error deleting stock:', error);
-    throw error;
-  }
+		if (!response.ok) {
+			throw new Error('Failed to delete stock');
+		}
+	} catch (error) {
+		console.error('Error deleting stock:', error);
+		throw error;
+	}
 }
 
 export async function deleteStockExchange(stockExchangeId: string): Promise<void> {
-  try {
-    const response = await fetchWithAuth(`/stockExchange/${stockExchangeId}`, {
-      method: 'DELETE',
-    });
+	try {
+		const response = await fetchWithAuth(`/stockExchange/${stockExchangeId}`, {
+			method: 'DELETE',
+		});
 
-    if (!response.ok) {
-      throw new Error('Failed to delete stock exchange');
-    }
-  } catch (error) {
-    console.error('Error deleting stock exchange:', error);
-    throw error;
-  }
+		if (!response.ok) {
+			throw new Error('Failed to delete stock exchange');
+		}
+	} catch (error) {
+		console.error('Error deleting stock exchange:', error);
+		throw error;
+	}
 }
 
 export async function fetchStockExchanges(page: number = 0, size: number = 5): Promise<PaginatedResponse<StockExchange>> {
@@ -199,72 +199,72 @@ export async function fetchStockExchanges(page: number = 0, size: number = 5): P
 }
 
 export interface UpdateStockExchangeRequest {
-  name: string;
-  description: string;
-  liveInMarket: boolean;
+	name: string;
+	description: string;
+	liveInMarket: boolean;
 }
 
 export async function updateStockExchange(id: string, exchange: UpdateStockExchangeRequest): Promise<StockExchange> {
 
 	console.log(exchange)
-  const response = await fetchWithAuth(`/stockExchange/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify(exchange),
-  });
+	const response = await fetchWithAuth(`/stockExchange/${id}`, {
+		method: 'PUT',
+		body: JSON.stringify(exchange),
+	});
 
-  const responseData = await response.json();
+	const responseData = await response.json();
 	console.log(responseData)
 
-  if (!response.ok) {
-    if (response.status === 400 && responseData.errors) {
-      throw {
-        response: {
-          data: {
-            errors: responseData.errors,
-            message: responseData.message || 'Validation failed'
-          },
-          status: response.status
-        }
-      };
-    }
+	if (!response.ok) {
+		if (response.status === 400 && responseData.errors) {
+			throw {
+				response: {
+					data: {
+						errors: responseData.errors,
+						message: responseData.message || 'Validation failed'
+					},
+					status: response.status
+				}
+			};
+		}
 
-    throw {
-      response: {
-        data: responseData,
-        status: response.status
-      }
-    };
-  }
+		throw {
+			response: {
+				data: responseData,
+				status: response.status
+			}
+		};
+	}
 
-  return responseData.data;
+	return responseData.data;
 }
 
 export const fetchStockExchangesForStock = async (
-  stockId: string,
-  page: number = 0,
-  size: number = 10,
-  sortBy: string = 'name'
+	stockId: string,
+	page: number = 0,
+	size: number = 10,
+	sortBy: string = 'name'
 ): Promise<PaginatedResponse<StockExchange>> => {
-  try {
-    console.log(`Fetching stock exchanges for stock ID: ${stockId}`);
+	try {
+		console.log(`Fetching stock exchanges for stock ID: ${stockId}`);
 
-    const response = await fetchWithAuth(
-      `/stock/stocks/${stockId}/exchanges?page=${page}&size=${size}&sortBy=${sortBy}`
-    );
+		const response = await fetchWithAuth(
+			`/stock/stocks/${stockId}/exchanges?page=${page}&size=${size}&sortBy=${sortBy}`
+		);
 
-    if (!response.ok) {
-      console.error(`Failed to fetch exchanges for stock: ${response.status}`);
-      throw new Error('Failed to fetch stock exchanges for this stock');
-    }
+		if (!response.ok) {
+			console.error(`Failed to fetch exchanges for stock: ${response.status}`);
+			throw new Error('Failed to fetch stock exchanges for this stock');
+		}
 
-    const data = await response.json();
-    console.log(`Successfully fetched ${data.data?.content?.length || 0} exchanges`);
+		const data = await response.json();
+		console.log(`Successfully fetched ${data.data?.content?.length || 0} exchanges`);
 
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching stock exchanges for stock:', error);
-    throw error;
-  }
+		return data.data;
+	} catch (error) {
+		console.error('Error fetching stock exchanges for stock:', error);
+		throw error;
+	}
 };
 
 export async function createStockExchange(exchange: CreateStockExchangeRequest): Promise<StockExchange> {
@@ -339,86 +339,113 @@ export async function updateStock(id: string, stock: UpdateStockRequest): Promis
 }
 
 export const fetchStock = async (id: string): Promise<Stock> => {
-  try {
-    const response = await fetchWithAuth(`/stock/${id}`);
-    if (!response.ok) {
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
-      throw new Error('Failed to fetch stock details');
-    }
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching stock:', error);
-    throw error;
-  }
+	try {
+		const response = await fetchWithAuth(`/stock/${id}`);
+		if (!response.ok) {
+			if (response.status === 401) {
+				throw new Error('Unauthorized');
+			}
+			throw new Error('Failed to fetch stock details');
+		}
+		const data = await response.json();
+		return data.data;
+	} catch (error) {
+		console.error('Error fetching stock:', error);
+		throw error;
+	}
 };
 
 export interface StockExchangeDetails extends StockExchange {
-  // Add any additional fields that might be returned by the API
+	// Add any additional fields that might be returned by the API
 }
 
 export const fetchStockExchange = async (id: number): Promise<StockExchangeDetails> => {
-  try {
-    console.log(`Attempting to fetch stock exchange with ID: ${id}`);
-    console.log(`API URL: ${API_BASE_URL}/stockExchange/${id}`);
+	try {
+		console.log(`Attempting to fetch stock exchange with ID: ${id}`);
+		console.log(`API URL: ${API_BASE_URL}/stockExchange/${id}`);
 
-    const response = await fetchWithAuth(`/stockExchange/${id}`);
+		const response = await fetchWithAuth(`/stockExchange/${id}`);
 
-    console.log('Response status:', response.status);
-    console.log('Response ok:', response.ok);
+		console.log('Response status:', response.status);
+		console.log('Response ok:', response.ok);
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response body:', errorText);
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error('Error response body:', errorText);
 
-      if (response.status === 401) {
-        throw new Error('Unauthorized');
-      }
+			if (response.status === 401) {
+				throw new Error('Unauthorized');
+			}
 
-      if (response.status === 404) {
-        throw new Error('Stock exchange not found');
-      }
+			if (response.status === 404) {
+				throw new Error('Stock exchange not found');
+			}
 
-      throw new Error(`Failed to fetch stock exchange: ${response.status} ${response.statusText}`);
-    }
+			throw new Error(`Failed to fetch stock exchange: ${response.status} ${response.statusText}`);
+		}
 
-    const data = await response.json();
-    console.log('Received data structure:', Object.keys(data));
+		const data = await response.json();
+		console.log('Received data structure:', Object.keys(data));
 
-    // Check if the data is wrapped in a 'data' property
-    if (data.data) {
-      console.log('Found data in data.data property');
-      return data.data;
-    }
+		// Check if the data is wrapped in a 'data' property
+		if (data.data) {
+			console.log('Found data in data.data property');
+			return data.data;
+		}
 
-    // Otherwise return the data directly
-    console.log('Returning data directly');
-    return data;
-  } catch (error) {
-    console.error('Error in fetchStockExchange:', error);
-    throw error;
-  }
+		// Otherwise return the data directly
+		console.log('Returning data directly');
+		return data;
+	} catch (error) {
+		console.error('Error in fetchStockExchange:', error);
+		throw error;
+	}
 };
 
-export const fetchStocksInExchange = async (
-  exchangeId: number, 
-  page: number = 0, 
-  size: number = 10,
-  sortBy: string = 'name'
-): Promise<PaginatedResponse<Stock>> => {
-  try {
-    const response = await fetchWithAuth(
-      `/stockExchange/stock-exchanges/${exchangeId}/stocks?page=${page}&size=${size}&sortBy=${sortBy}`
-    );
-    if (!response.ok) {
-      throw new Error('Failed to fetch stocks in exchange');
-    }
-    const data = await response.json();
-    return data.data;
-  } catch (error) {
-    console.error('Error fetching stocks in exchange:', error);
-    throw error;
-  }
+export async function fetchStocksInExchange(
+	exchangeId: number,
+	page: number = 0,
+	size: number = 10,
+	sortBy: string = 'name'
+): Promise<PaginatedResponse<Stock>> {
+	try {
+		const response = await fetchWithAuth(
+			`/stockExchange/${exchangeId}/stocks?page=${page}&size=${size}`
+		);
+
+
+		if (!response.ok) {
+			console.log(response.json())
+			throw new Error('Failed to fetch stocks in exchange');
+		}
+
+		const data = await response.json();
+		return data.data;
+	} catch (error) {
+		console.error('Error fetching stocks in exchange:', error);
+		throw error;
+	}
+}
+
+export async function fetchStocksNotInExchange(
+	exchangeId: number,
+	page: number = 0,
+	size: number = 10,
+	sortBy: string = 'name'
+): Promise<PaginatedResponse<Stock>> {
+	try {
+		const response = await fetchWithAuth(
+			`/stockExchange/${exchangeId}/stocks/not-listed?page=${page}&size=${size}`
+		);
+
+		if (!response.ok) {
+			throw new Error('Failed to fetch stocks not in exchange');
+		}
+
+		const data = await response.json();
+		return data.data;
+	} catch (error) {
+		console.error('Error fetching stocks not in exchange:', error);
+		throw error;
+	}
 };

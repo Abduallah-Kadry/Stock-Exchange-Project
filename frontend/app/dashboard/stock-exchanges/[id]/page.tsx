@@ -6,6 +6,7 @@ import { StocksInExchangeTable } from '@/components/stocks-in-exchange-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, TrendingUp } from 'lucide-react';
+import {StocksNotInExchangeTable} from "@/components/stocks-not-in-exchange-table";
 
 interface StockExchangeDetailsProps {
   params: Promise<{
@@ -114,18 +115,17 @@ export default async function StockExchangeDetails({ params }: StockExchangeDeta
           </Suspense>
         </CardContent>
       </Card>
-
-      {/* All Stocks Section */}
+      {/* Stocks Not in This Exchange Section */}
       <Card>
         <CardHeader>
-          <CardTitle>All Available Stocks</CardTitle>
+          <CardTitle>Available Stocks to Add</CardTitle>
           <CardDescription>
-            Browse all stocks in the platform
+            Stocks not currently listed on this exchange
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<LoadingState message="Loading all stocks..." />}>
-            <StockTable />
+          <Suspense fallback={<LoadingState message="Loading available stocks..." />}>
+            <StocksNotInExchangeTable exchangeId={id} />
           </Suspense>
         </CardContent>
       </Card>

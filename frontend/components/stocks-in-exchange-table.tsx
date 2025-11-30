@@ -78,7 +78,7 @@ export function StocksInExchangeTable({ exchangeId }: { exchangeId: string }) {
           ) : (
             stocks.map((stock, index) => (
               <TableRow key={stock.stockId}>
-                <TableCell>{getRowNumber(index)}</TableCell>
+                <TableCell>{stock.stockId}</TableCell>
                 <TableCell className="font-medium">
                   {stock.name || "Unnamed Stock"}
                 </TableCell>

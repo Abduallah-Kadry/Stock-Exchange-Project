@@ -26,6 +26,17 @@ public interface StockListingRepository extends JpaRepository<StockListing, Stoc
 
     @Query("SELECT sl.stockExchange FROM stock_listing sl WHERE sl.stock.stockId = :id")
     Page<StockExchange> findStockExchangesByStockId(@Param("id") Long stockId, Pageable pageable);
+    
+    @Query("SELECT s FROM Stock s WHERE s NOT IN " +
+           "(SELECT sl.stock FROM stock_listing sl WHERE sl.stockExchange.stockExchangeId = :exchangeId)")
+    Page<Stock> findStocksNotInExchange(@Param("exchangeId") Long exchangeId, Pageable pageable);
+
+    @Query("SELECT sl.stockListingId FROM stock_listing sl " +
+           "WHERE sl.stockExchange.stockExchangeId = :stockExchangeId AND sl.stock.stockId IN :stockIds")
+    List<StockListingId> findExistingListings(
+            @Param("stockExchangeId") Long stockExchangeId,
+            @Param("stockIds") List<Long> stockIds
+    );
 
     @Modifying
     @Transactional

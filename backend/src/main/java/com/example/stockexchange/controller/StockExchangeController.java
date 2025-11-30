@@ -4,6 +4,7 @@ package com.example.stockexchange.controller;
 import com.example.stockexchange.dto.StockDto;
 import com.example.stockexchange.dto.StockExchangeDto;
 import com.example.stockexchange.dto.StockListingDto;
+import com.example.stockexchange.request.AddStocksToExchangeRequest;
 import com.example.stockexchange.request.StockExchangeCreationRequest;
 import com.example.stockexchange.request.StockExchangeUpdateRequest;
 import com.example.stockexchange.response.ApiRespond;
@@ -20,6 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping("${app.paths.api-base}${app.paths.api-version}/stockExchange")
 @RequiredArgsConstructor
@@ -43,6 +46,26 @@ public class StockExchangeController {
                 HttpStatus.OK,
                 "Stock Exchanges retrieved successfully",
                 stockExchanges
+        ));
+    }
+    
+    @Operation(summary = "Get stocks not listed in a specific exchange", 
+              description = "Retrieves a paginated list of stocks that are not listed in the specified stock exchange")
+    @ApiResponse(responseCode = "200", description = "Successfully retrieved list of stocks not in the exchange")
+    @ApiResponse(responseCode = "404", description = "Stock exchange not found")
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/{exchangeId}/stocks/not-listed")
+    public ResponseEntity<ApiRespond> getStocksNotInExchange(
+            @PathVariable Long exchangeId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+                
+        Page<StockDto> stocks = stockExchangeService.findStocksNotInExchange(exchangeId, page, size);
+        
+        return ResponseEntity.ok(new ApiRespond(
+                HttpStatus.OK,
+                "Stocks not listed in exchange retrieved successfully",
+                stocks
         ));
     }
 
@@ -79,12 +102,12 @@ public class StockExchangeController {
 
     @Operation(summary = "Get all stocks in A particular StockExchange which A on pages default page size 5", description = "Get all stocks in A particular StockExchange which A on pages default page size 5")
     @PreAuthorize("hasRole('USER')")
-    @GetMapping("/stock-exchanges/{id}/stocks")
+    @GetMapping("/{id}/stocks")
     public ResponseEntity<ApiRespond> getAllStocksByExchange(
             @PathVariable Long id,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "name") String sortBy) {
+            @RequestParam(defaultValue = "") String sortBy) {
 
         Page<StockDto> stocks = stockExchangeService.getAllStocksByExchange(id, page, size, sortBy);
         return ResponseEntity.ok(new ApiRespond(HttpStatus.OK, "All Available Stocks In StockExchange", stocks));
@@ -158,6 +181,30 @@ public class StockExchangeController {
                         HttpStatus.CREATED,
                         "Stock added successfully to stock exchange",
                         stockListingDto
+                ));
+    }
+
+    @Operation(summary = "Add multiple stocks to stock exchange", 
+              description = "Associates multiple stocks with a stock exchange in a single operation")
+    @ApiResponse(responseCode = "201", description = "Stocks added to stock exchange successfully")
+    @ApiResponse(responseCode = "400", description = "Invalid request data")
+    @ApiResponse(responseCode = "404", description = "Stock exchange or one or more stocks not found")
+    @ApiResponse(responseCode = "409", description = "One or more stocks already exist in this stock exchange")
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping(value = "/{stockExchangeId}/stocks")
+    public ResponseEntity<ApiRespond> addStocksToStockExchange(
+            @PathVariable @Positive long stockExchangeId,
+            @Valid @RequestBody AddStocksToExchangeRequest request) {
+
+        List<StockListingDto> stockListingDtos = stockExchangeService.addStocksToStockExchange(
+                stockExchangeId, request.getStockIds());
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(new ApiRespond(
+                        HttpStatus.CREATED,
+                        String.format("Successfully added %d stocks to stock exchange", stockListingDtos.size()),
+                        stockListingDtos
                 ));
     }
 
