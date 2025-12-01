@@ -26,6 +26,9 @@ public class JwtService{
     @Value("${jwt.expiration}")
     private long JWT_EXPIRATION;
 
+    @Value("${jwt.refresh-expiration}")
+    private long REFRESH_TOKEN_EXPIRATION;
+
     public String extractUsername(String token) {
 
         return extractClaim(token, Claims::getSubject);
@@ -59,19 +62,26 @@ public class JwtService{
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public String generateToken(Map<String, Object> s, UserDetails userDetails){
+    public String generateToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails, JWT_EXPIRATION);
+    }
 
-        Map<String, Object> claims = new HashMap<>();
+    public String generateRefreshToken(UserDetails userDetails) {
+        return generateToken(new HashMap<>(), userDetails, REFRESH_TOKEN_EXPIRATION);
+    }
+
+    public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {
+        Map<String, Object> claims = new HashMap<>(extraClaims);
 
         claims.put("authorities", userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(java.util.stream.Collectors.toList()));
 
         return Jwts.builder()
-                .setClaims(claims) // empty hashmap
+                .setClaims(claims)
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRATION))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -79,5 +89,9 @@ public class JwtService{
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    public long getRefreshTokenExpiration() {
+        return REFRESH_TOKEN_EXPIRATION;
     }
 }

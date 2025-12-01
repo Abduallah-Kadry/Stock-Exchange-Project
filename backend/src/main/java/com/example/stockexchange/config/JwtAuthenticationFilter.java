@@ -1,6 +1,8 @@
 package com.example.stockexchange.config;
 
+import com.example.stockexchange.exception.AuthenticationException;
 import com.example.stockexchange.service.JwtService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.SignatureException;
@@ -11,13 +13,17 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.lang.NonNull;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
@@ -73,15 +79,52 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
 
+        } catch (UsernameNotFoundException ex) {
+            log.warn("User not found: {}", ex.getMessage());
+            sendErrorResponse(response, "User not found", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+            return;
         } catch (ExpiredJwtException ex) {
             log.warn("JWT token has expired: {}", ex.getMessage());
+            sendErrorResponse(response, "Token Expired", "JWT token has expired", HttpStatus.UNAUTHORIZED);
+            return;
         } catch (SignatureException ex) {
             log.warn("Invalid JWT signature: {}", ex.getMessage());
+            sendErrorResponse(response, "Invalid Token", "Invalid JWT signature", HttpStatus.UNAUTHORIZED);
+            return;
         } catch (JwtException ex) {
-            log.error("Invalid JWT token", ex);
+            log.warn("JWT exception: {}", ex.getMessage());
+            sendErrorResponse(response, "Invalid Token", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+            return;
+        } catch (IllegalArgumentException ex) {
+            log.warn("Illegal argument in JWT: {}", ex.getMessage());
+            sendErrorResponse(response, "Invalid Token", "Invalid token format", HttpStatus.UNAUTHORIZED);
+            return;
+        } catch (AuthenticationException ex) {
+            log.warn("Authentication exception: {}", ex.getMessage());
+            sendErrorResponse(response, "Authentication Error", ex.getMessage(), HttpStatus.UNAUTHORIZED);
+            return;
+        } catch (Exception ex) {
+            log.error("Unexpected error processing JWT", ex);
+            sendErrorResponse(response, "Authentication Error", ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            return;
         }
 
+
         filterChain.doFilter(request, response);
+    }
+
+    private void sendErrorResponse(HttpServletResponse response, String error, String message, HttpStatus status) throws IOException {
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+
+        // Create a simple Map for JSON response
+        var errorResponse = new java.util.HashMap<String, Object>();
+        errorResponse.put("error", error);
+        errorResponse.put("message", message);
+        errorResponse.put("status", status.value());
+        errorResponse.put("timestamp", java.time.Instant.now().toString());
+
+        new ObjectMapper().writeValue(response.getWriter(), errorResponse);
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {
