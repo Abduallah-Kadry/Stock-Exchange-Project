@@ -1,22 +1,16 @@
 import {RegisterRequest} from '@/types/auth';
 import {ResponseMessage} from "@/types/ResponseMessage";
 import {toast} from 'react-hot-toast';
-import {Stock} from "@/types/Stock";
-import {StockExchange} from "@/types/Stock";
+import {Stock, StockExchange} from "@/types/Stock";
 
 const getApiUrl = (): string => {
   if (typeof window === 'undefined') {
-    const url = process.env.NEXT_INTERNAL_API_URL || 'http://backend:8080';
-    console.log('🔧 [SERVER-SIDE] API URL:', url);
-    return url;
+	  return process.env.NEXT_INTERNAL_API_URL || 'http://backend:8080';
   }
-
-  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
-  console.log('🌐 [CLIENT-SIDE] API URL:', url);
-  return url;
+	return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 };
 
-const API_BASE_URL = `${getApiUrl()}/api/v1`; // ← Fixed: added /
+const API_BASE_URL = `${getApiUrl()}/api/v1`;
 
 const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   const isServer = typeof window === 'undefined';
@@ -51,8 +45,6 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     credentials: 'include',
   });
 
-  console.log(`[${isServer ? 'SERVER' : 'CLIENT'}] Response status: ${response.status}`);
-
   // Only redirect if we're in the browser
   if (!isServer && response.status === 401) {
     console.log('🔒 [CLIENT] Unauthorized - redirecting to login');
@@ -68,6 +60,8 @@ const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
 
   return response;
 };
+
+
 export const registerUser = async (data: RegisterRequest): Promise<ResponseMessage> => {
 	try {
 		const response = await fetchWithAuth('/auth/register', {
@@ -279,7 +273,6 @@ export const fetchStockExchangesForStock = async (
 		}
 
 		const data = await response.json();
-		console.log(`Successfully fetched ${data.data?.content?.length || 0} exchanges`);
 
 		return data.data;
 	} catch (error) {

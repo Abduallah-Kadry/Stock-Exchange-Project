@@ -28,14 +28,12 @@ export default function LoginPage() {
         password: formData.password,
       });
 
-      console.log(result)
-
       if (result.type === "success") {
         toast.success(result.message || "Login successful!");
         // Redirect to dashboard after 2 seconds
         setTimeout(() => {
           window.location.href = '/dashboard';
-        }, 2000);
+        }, 1500);
       } else {
         toast.error(result.message || "Login failed. Please try again.");
       }

@@ -38,7 +38,6 @@ export default async function StockDetailsPage({ params }: StockDetailsProps) {
   let stock;
 
   try {
-    console.log('Fetching stock with ID:', id);
     stock = await fetchStock(id);
 
     if (!stock) {
@@ -46,13 +45,11 @@ export default async function StockDetailsPage({ params }: StockDetailsProps) {
       notFound();
     }
 
-    console.log('Successfully fetched stock:', stock.name);
   } catch (error: unknown) {
     console.error('Error fetching stock:', error);
 
     if (error instanceof Error) {
       if (error.message === 'Unauthorized') {
-        console.log('User unauthorized, redirecting to login');
         redirect('/login');
       }
       console.error('Error message:', error.message);

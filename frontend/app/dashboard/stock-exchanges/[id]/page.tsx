@@ -17,7 +17,6 @@ interface StockExchangeDetailsProps {
 }
 
 export default async function StockExchangeDetails({params}: StockExchangeDetailsProps) {
-	console.log(params)
 	const resolvedParams = await params;
 	// Ensure we have the ID before proceeding
 	if (!resolvedParams?.id) {
