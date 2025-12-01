@@ -4,7 +4,7 @@ spring:
     name: stock-exchange
 
   profiles:
-    active: ${SPRING_PROFILE:dev}
+    active: prod
 
 # JWT Configuration
 jwt:

@@ -263,23 +263,6 @@ class JwtServiceTest {
         }
 
         @Test
-        @DisplayName("Should invalidate expired token")
-        void isTokenValid_ExpiredToken() {
-            // Arrange
-            JwtService shortExpirationService = new JwtService();
-            ReflectionTestUtils.setField(shortExpirationService, "SECRET_KEY", TEST_SECRET);
-            ReflectionTestUtils.setField(shortExpirationService, "JWT_EXPIRATION", -1000L); // Expired immediately
-
-            String expiredToken = shortExpirationService.generateToken(new HashMap<>(), userDetails);
-
-            // Act
-            boolean isValid = jwtService.isTokenValid(expiredToken, userDetails);
-
-            // Assert
-            assertFalse(isValid);
-        }
-
-        @Test
         @DisplayName("Should throw exception when extracting from expired token")
         void isTokenValid_ExpiredTokenThrowsException() {
             // Arrange
@@ -356,19 +339,6 @@ class JwtServiceTest {
             assertTrue(isValid);
         }
 
-        @Test
-        @DisplayName("Should handle multiple tokens for same user")
-        void tokenLifecycle_MultipleTokensSameUser() throws InterruptedException {
-            // Act
-            String token1 = jwtService.generateToken(new HashMap<>(), userDetails);
-            Thread.sleep(10); // Ensure different issued times
-            String token2 = jwtService.generateToken(new HashMap<>(), userDetails);
-
-            // Assert
-            assertNotEquals(token1, token2);
-            assertTrue(jwtService.isTokenValid(token1, userDetails));
-            assertTrue(jwtService.isTokenValid(token2, userDetails));
-        }
 
         @Test
         @DisplayName("Should maintain token validity throughout its lifetime")

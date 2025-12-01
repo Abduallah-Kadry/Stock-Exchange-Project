@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Pencil } from "lucide-react";
 import { UpdateStockExchangeModal } from "./updateStockExchangeModal";
 import { StockExchange } from "@/types/Stock";
-import { updateStockExchange } from "@/lib/api";
 import { useRouter } from 'next/navigation';
 
 interface UpdateExchangeButtonProps {
@@ -25,8 +24,6 @@ export function UpdateExchangeButton({ exchange }: UpdateExchangeButtonProps) {
   return (
     <UpdateStockExchangeModal
       exchange={exchange}
-      isOpen={isOpen}
-      onOpenChange={setIsOpen}
       onSuccess={handleSuccess}
     >
       <Button

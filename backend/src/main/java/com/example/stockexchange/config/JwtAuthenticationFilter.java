@@ -42,11 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain) throws ServletException, IOException {
 
-        String requestPath = request.getRequestURI();
 
         String jwt = extractJwtFromRequest(request);
 
         if (jwt == null) {
+            log.debug("No JWT token found, continuing filter chain");
             filterChain.doFilter(request, response);
             return;
         }
@@ -66,31 +66,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    log.debug("Authentication set for user: {}", userEmail);
+
+                } else {
+                    log.debug("JWT token is not valid");
                 }
             }
 
         } catch (ExpiredJwtException ex) {
-            log.error("JWT token has expired", ex);
-            handleJwtException(response, "JWT token has expired");
-            return;
+            log.warn("JWT token has expired: {}", ex.getMessage());
         } catch (SignatureException ex) {
-            log.error("Invalid JWT signature", ex);
-            handleJwtException(response, "Invalid JWT signature");
-            return;
+            log.warn("Invalid JWT signature: {}", ex.getMessage());
         } catch (JwtException ex) {
             log.error("Invalid JWT token", ex);
-            handleJwtException(response, "Invalid JWT token");
-            return;
         }
 
         filterChain.doFilter(request, response);
-    }
-
-    // ! Caution this is executed before any of the exception controller advices
-    private void handleJwtException(HttpServletResponse response, String message) throws IOException {
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write("{\"error\": \"" + message + "\"}");
     }
 
     private String extractJwtFromRequest(HttpServletRequest request) {

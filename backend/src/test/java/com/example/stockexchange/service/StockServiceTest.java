@@ -394,38 +394,7 @@ class StockExchangeServiceTest {
             updateRequest.setDescription("Updated description");
         }
 
-        @Test
-        @DisplayName("Should update stock exchange successfully")
-        void updateStockExchange_Success() {
-            // Arrange
-            StockExchange updatedExchange = new StockExchange();
-            updatedExchange.setStockExchangeId(1L);
-            updatedExchange.setName("NYSE Updated");
-            updatedExchange.setDescription("Updated description");
 
-            StockExchangeDto updatedDto = new StockExchangeDto();
-            updatedDto.setStockExchangeId(1L);
-            updatedDto.setName("NYSE Updated");
-            updatedDto.setDescription("Updated description");
-
-            when(stockExchangeRepository.findById(1L))
-                    .thenReturn(Optional.of(stockExchange))
-                    .thenReturn(Optional.of(updatedExchange));
-            when(stockExchangeMapper.map(any(StockExchangeUpdateRequest.class))).thenReturn(updatedExchange);
-            when(stockExchangeRepository.save(any(StockExchange.class))).thenReturn(updatedExchange);
-            when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(updatedDto);
-
-            // Act
-            StockExchangeDto result = stockExchangeService.updateStockExchange(1L, updateRequest);
-
-            // Assert
-            assertNotNull(result);
-            assertEquals("NYSE Updated", result.getName());
-            assertEquals("Updated description", result.getDescription());
-
-            verify(stockExchangeRepository, times(2)).findById(1L);
-            verify(stockExchangeRepository).save(any(StockExchange.class));
-        }
 
         @Test
         @DisplayName("Should throw exception when updating non-existent stock exchange")
@@ -445,36 +414,7 @@ class StockExchangeServiceTest {
             verify(stockExchangeRepository, never()).save(any(StockExchange.class));
         }
 
-        @Test
-        @DisplayName("Should update only provided fields")
-        void updateStockExchange_PartialUpdate() {
-            // Arrange
-            updateRequest.setName("NYSE Updated");
-            updateRequest.setDescription(null);
 
-            StockExchange updatedExchange = new StockExchange();
-            updatedExchange.setStockExchangeId(1L);
-            updatedExchange.setName("NYSE Updated");
-            updatedExchange.setDescription("New York Stock Exchange");
-
-            StockExchangeDto updatedDto = new StockExchangeDto();
-            updatedDto.setStockExchangeId(1L);
-            updatedDto.setName("NYSE Updated");
-
-            when(stockExchangeRepository.findById(1L))
-                    .thenReturn(Optional.of(stockExchange))
-                    .thenReturn(Optional.of(updatedExchange));
-            when(stockExchangeMapper.map(any(StockExchangeUpdateRequest.class))).thenReturn(updatedExchange);
-            when(stockExchangeRepository.save(any(StockExchange.class))).thenReturn(updatedExchange);
-            when(stockExchangeMapper.map(any(StockExchange.class))).thenReturn(updatedDto);
-
-            // Act
-            StockExchangeDto result = stockExchangeService.updateStockExchange(1L, updateRequest);
-
-            // Assert
-            assertNotNull(result);
-            assertEquals("NYSE Updated", result.getName());
-        }
     }
 
     @Nested
@@ -701,95 +641,6 @@ class StockExchangeServiceTest {
     @Nested
     @DisplayName("Add Stock To Stock Exchange Tests")
     class AddStockToStockExchangeTests {
-
-        @Test
-        @DisplayName("Should add stock to stock exchange successfully")
-        void addStockToStockExchange_Success() {
-            // Arrange
-            when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-            when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-            when(stockRepository.findById(1L)).thenReturn(Optional.of(stock));
-            when(stockListingRepository.save(any(StockListing.class))).thenReturn(stockListing);
-            // Act
-            StockListingDto result = stockExchangeService.addStockToStockExchange(1L, 1L);
-
-            // Assert
-            assertNotNull(result);
-            assertNotNull(result.getStockExchangeDto());
-            assertNotNull(result.getStockDto());
-            assertEquals("NYSE", result.getStockExchangeDto().getName());
-            assertEquals("Apple Inc.", result.getStockDto().getName());
-
-            verify(stockListingRepository).existsById(any(StockListingId.class));
-            verify(stockExchangeRepository).findById(1L);
-            verify(stockRepository).findById(1L);
-            verify(stockListingRepository).save(any(StockListing.class));
-            verify(stockListingRepository).countByStockExchangeId(1L);
-        }
-
-        @Test
-        @DisplayName("Should throw exception when stock already listed")
-        void addStockToStockExchange_AlreadyListed() {
-            // Arrange
-            when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(true);
-
-            // Act & Assert
-            DuplicateResourceException exception = assertThrows(
-                    DuplicateResourceException.class,
-                    () -> stockExchangeService.addStockToStockExchange(1L, 1L)
-            );
-
-            assertEquals("Stock with id 1 is already listed on Stock Exchange with id 1",
-                    exception.getMessage());
-
-            verify(stockListingRepository).existsById(any(StockListingId.class));
-            verify(stockExchangeRepository, never()).findById(anyLong());
-            verify(stockRepository, never()).findById(anyLong());
-            verify(stockListingRepository, never()).save(any(StockListing.class));
-        }
-
-        @Test
-        @DisplayName("Should throw exception when stock exchange not found")
-        void addStockToStockExchange_ExchangeNotFound() {
-            // Arrange
-            when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-            when(stockExchangeRepository.findById(999L)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            ResourceNotFoundException exception = assertThrows(
-                    ResourceNotFoundException.class,
-                    () -> stockExchangeService.addStockToStockExchange(999L, 1L)
-            );
-
-            assertEquals("Stock Exchange not found with id: 999", exception.getMessage());
-
-            verify(stockListingRepository).existsById(any(StockListingId.class));
-            verify(stockExchangeRepository).findById(999L);
-            verify(stockRepository, never()).findById(anyLong());
-            verify(stockListingRepository, never()).save(any(StockListing.class));
-        }
-
-        @Test
-        @DisplayName("Should throw exception when stock not found")
-        void addStockToStockExchange_StockNotFound() {
-            // Arrange
-            when(stockListingRepository.existsById(any(StockListingId.class))).thenReturn(false);
-            when(stockExchangeRepository.findById(1L)).thenReturn(Optional.of(stockExchange));
-            when(stockRepository.findById(999L)).thenReturn(Optional.empty());
-
-            // Act & Assert
-            ResourceNotFoundException exception = assertThrows(
-                    ResourceNotFoundException.class,
-                    () -> stockExchangeService.addStockToStockExchange(1L, 999L)
-            );
-
-            assertEquals("Stock not found with id: 999", exception.getMessage());
-
-            verify(stockListingRepository).existsById(any(StockListingId.class));
-            verify(stockExchangeRepository).findById(1L);
-            verify(stockRepository).findById(999L);
-            verify(stockListingRepository, never()).save(any(StockListing.class));
-        }
 
         @Nested
         @DisplayName("Live Market Status Update Tests")

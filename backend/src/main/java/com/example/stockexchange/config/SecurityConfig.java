@@ -3,6 +3,7 @@ package com.example.stockexchange.config;
 import com.example.stockexchange.entity.UserCredintials;
 import com.example.stockexchange.repository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -25,6 +26,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.Arrays;
 import java.util.List;
 
+@Slf4j
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -58,36 +60,34 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.authorizeHttpRequests(configurer -> {
-                    configurer
+        http.authorizeHttpRequests(configurer -> configurer
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/v1/auth/forgot-password").permitAll()
+                // Documentation (usually only in dev)
+                .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
 
-                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/login").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/register").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/refresh").permitAll()
-                            .requestMatchers(HttpMethod.POST, "/api/v1/auth/forgot-password").permitAll()
-                            // Documentation (usually only in dev)
-                            .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
+                // should not be in production
+                .requestMatchers("/h2-console/**").permitAll() // Add this if using H2 console
 
-                            // Health checks (for load balancers)
-                            .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // Health checks (for load balancers)
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                            // Health checks (for load balancers) In the future of course
-                            .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+                // Health checks (for load balancers) In the future of course
+                .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                            // ===== EVERYTHING ELSE REQUIRES AUTHENTICATION =====
-                            .anyRequest().authenticated();
-                }
+                // ===== EVERYTHING ELSE REQUIRES AUTHENTICATION =====
+                .anyRequest().authenticated()
         );
 
         http.csrf(AbstractHttpConfigurer::disable);
+
         http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
-
-
 
         http.sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        // TODO better security exception handling is needed
         http.exceptionHandling(exception -> exception
                 .authenticationEntryPoint((request, response, authException) -> {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
