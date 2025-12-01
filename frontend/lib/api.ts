@@ -4,47 +4,70 @@ import {toast} from 'react-hot-toast';
 import {Stock} from "@/types/Stock";
 import {StockExchange} from "@/types/Stock";
 
-const API_BASE_URL = 'http://localhost:8080/api/v1';
+const getApiUrl = (): string => {
+  if (typeof window === 'undefined') {
+    const url = process.env.NEXT_INTERNAL_API_URL || 'http://backend:8080';
+    console.log('🔧 [SERVER-SIDE] API URL:', url);
+    return url;
+  }
 
-// Helper function for making authenticated requests
-const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
-	// Detect server vs client
-	const isServer = typeof window === 'undefined';
-
-	// When running on the server, forward incoming cookies to the backend
-	let cookieHeader = '';
-	if (isServer) {
-		try {
-			const {cookies} = await import('next/headers');
-			const store = await cookies();
-			const all = store.getAll();
-			if (all.length > 0) {
-				cookieHeader = all.map((c) => `${c.name}=${c.value}`).join('; ');
-			}
-		} catch {
-			// no-op: next/headers not available in this context
-		}
-	}
-
-	const response = await fetch(`${API_BASE_URL}${url}`, {
-		...options,
-		headers: {
-			'Content-Type': 'application/json',
-			...(cookieHeader ? {Cookie: cookieHeader} : {}),
-			...options.headers,
-		},
-		credentials: 'include',
-	});
-
-	// Only redirect if we're in the browser
-	if (!isServer && response.status === 401) {
-		window.location.href = '/login';
-		throw new Error('Unauthorized');
-	}
-
-	return response;
+  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  console.log('🌐 [CLIENT-SIDE] API URL:', url);
+  return url;
 };
 
+const API_BASE_URL = `${getApiUrl()}/api/v1`; // ← Fixed: added /
+
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const isServer = typeof window === 'undefined';
+
+  let cookieHeader = '';
+  if (isServer) {
+    try {
+      const {cookies} = await import('next/headers');
+      const store = await cookies();
+      const all = store.getAll();
+      if (all.length > 0) {
+        cookieHeader = all.map((c) => `${c.name}=${c.value}`).join('; ');
+        console.log('🍪 [SERVER] Forwarding cookies:', cookieHeader);
+      } else {
+        console.log('⚠️ [SERVER] No cookies found to forward');
+      }
+    } catch (error) {
+      console.error('❌ [SERVER] Error reading cookies:', error);
+    }
+  }
+
+  const fullUrl = `${API_BASE_URL}${url}`;
+  console.log(`[${isServer ? 'SERVER' : 'CLIENT'}] Fetching: ${fullUrl}`);
+
+  const response = await fetch(fullUrl, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(cookieHeader ? { Cookie: cookieHeader } : {}),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+
+  console.log(`[${isServer ? 'SERVER' : 'CLIENT'}] Response status: ${response.status}`);
+
+  // Only redirect if we're in the browser
+  if (!isServer && response.status === 401) {
+    console.log('🔒 [CLIENT] Unauthorized - redirecting to login');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  // On server-side, just throw the error - the page component will handle it
+  if (isServer && response.status === 401) {
+    console.log('🔒 [SERVER] Unauthorized - page will handle redirect');
+    throw new Error('Unauthorized');
+  }
+
+  return response;
+};
 export const registerUser = async (data: RegisterRequest): Promise<ResponseMessage> => {
 	try {
 		const response = await fetchWithAuth('/auth/register', {
@@ -434,7 +457,7 @@ export async function fetchStocksNotInExchange(
 		const response = await fetchWithAuth(
 			`/stockExchange/${exchangeId}/stocks/not-listed?page=${page}&size=${size}`
 		)
-		
+
 		if (!response.ok) {
 			const errorData = await response.json().catch(() => ({}))
 			throw new Error(errorData.message || 'Failed to fetch stocks not in exchange')
