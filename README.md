@@ -98,7 +98,7 @@ A full-stack, enterprise-grade stock trading platform featuring real-time market
 - **Framework:** Spring Boot 3.5.8
 - **Language:** Java 17
 - **Security:** Spring Security + JWT (JJWT 0.12.6)
-- **Database:** H2 (dev) 
+- **Database:** H2 (dev)
 - **ORM:** Spring Data JPA / Hibernate
 - **Build Tool:** Maven
 - **Containerization:** Google Jib 3.4.0
@@ -932,10 +932,10 @@ curl http://localhost:8080/actuator/metrics
 
 
 **Exchange Management **
-    - Exchange CRUD operations
-    - Add/remove stocks from exchanges
-    - Live market status toggle
-    - Bulk operations
+- Exchange CRUD operations
+- Add/remove stocks from exchanges
+- Live market status toggle
+- Bulk operations
 
 ### Authentication Flow
 
