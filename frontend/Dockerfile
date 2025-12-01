@@ -5,7 +5,6 @@ FROM node:22-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Install system dependencies
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -13,7 +12,7 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Install dependencies
-RUN npm ci --only=production
+RUN npm ci
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -28,8 +27,11 @@ ENV NODE_ENV=production
 # Build the application with production API URL
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8080}
-RUN echo "Using API URL: $NEXT_PUBLIC_API_URL" && \
-    npm run build
+RUN echo "Using API URL: $NEXT_PUBLIC_API_URL"
+
+# Create .next/cache directory
+RUN mkdir -p .next/cache
+RUN npm run build
 
 # Production image
 FROM base AS runner
@@ -44,16 +46,13 @@ ENV PORT=3000
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
+# Create necessary directories
+RUN mkdir -p /app/.next/cache
+RUN mkdir -p /app/.next/static
+RUN chown nextjs:nodejs /app/.next/cache
+RUN chown nextjs:nodejs /app/.next/static
+
 # Copy necessary files
-COPY --from=builder /app/package.json ./package.json
-# Create public directory if it doesn't exist
-RUN mkdir -p public
-
-# Set up .next directory
-RUN mkdir -p .next
-RUN chown nextjs:nodejs .next
-
-# Copy built assets
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

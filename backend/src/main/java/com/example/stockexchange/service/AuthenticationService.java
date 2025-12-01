@@ -15,26 +15,16 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.List;
-
-import com.example.stockexchange.exception.TokenRefreshException;
-import org.springframework.transaction.annotation.Transactional;
-import java.time.Instant;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 @Service
-
-
 public class AuthenticationService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    
-    @Value("${jwt.refresh-expiration}")
-    private long refreshTokenDurationMs;
 
     public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository = userRepository;
@@ -44,22 +34,12 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public AuthenticationResponse register(RegisterRequest input) {
+    public void register(RegisterRequest input) {
         if (isEmailTaken(input.getEmail())) {
             throw new RuntimeException("Email already taken");
         }
         User user = buildNewUser(input);
-        user = userRepository.save(user);
-        
-        UserCredintials userCredentials = new UserCredintials(user);
-        String accessToken = jwtService.generateToken(userCredentials);
-        String refreshToken = jwtService.generateRefreshToken(userCredentials);
-        
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .expiresIn(jwtService.getRefreshTokenExpiration() / 1000)
-                .build();
+        userRepository.save(user);
     }
 
     @Transactional(readOnly = true)
@@ -73,14 +53,8 @@ public class AuthenticationService {
 
             UserCredintials userCredintials = new UserCredintials(user);
 
-            String accessToken = jwtService.generateToken(userCredintials);
-            String refreshToken = jwtService.generateRefreshToken(userCredintials);
-            
-            return AuthenticationResponse.builder()
-                    .accessToken(accessToken)
-                    .refreshToken(refreshToken)
-                    .expiresIn(jwtService.getRefreshTokenExpiration() / 1000) // Convert to seconds
-                    .build();
+            String jwtToken = jwtService.generateToken(new HashMap<>(), userCredintials);
+            return new AuthenticationResponse(jwtToken);
 
         } catch (Exception e) {
             throw new InvalidCredentialException("Invalid email or password");

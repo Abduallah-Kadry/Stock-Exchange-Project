@@ -87,9 +87,11 @@ backend/data/*.db
 !backend/data/README.md
 
 
-# Ignore npm package-lock file
 package-lock.json
-# ===========================
+
+
+
+
 # OTHER OS-GENERATED FILES
 # ===========================
 .DS_Store?

@@ -42,10 +42,10 @@ spring:
   # H2 Console Configuration
   h2:
     console:
-      enabled: ture
+      enabled: true
       path: /h2-console
       settings:
-        web-allow-others: false
+        web-allow-others: true
 
   # DevTools Configuration
   devtools:
